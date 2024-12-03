@@ -16,3 +16,11 @@ Run the file `data_process/data_process.py`. The data will be saved in the `clea
 ```bash
 python data_process/data_process.p
 ```
+
+
+## Original Dataset
+
+The original dataset can be accessed from the following sources:
+
+- [Hugging Face](https://huggingface.co/datasets/Weijie1996/wind_solar_dataset)
+- [IEEE Dataport](https://ieee-dataport.org/competitions/hybrid-energy-forecasting-and-trading-competition#files)
