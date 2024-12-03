@@ -1,0 +1,6 @@
+# ignore python cache files
+cleaned_data/
+data_process/.cache/
+.venv
+data_process/fulldataset/
+data_process/.gitattributes
