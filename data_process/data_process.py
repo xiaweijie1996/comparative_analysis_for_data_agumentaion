@@ -47,7 +47,9 @@ def process_data():
     
 
 if __name__ == "__main__":
+    print("1)\U0001F600 Data processing started ")
+    print("2)\U0001F605 Downloading the dataset from huggingface hub")
     load_dataset()
+    print("3)\U0001F923 Processing the data ")
     process_data()
-
-    
+    print("4)\U0001F911 Data processing completed, the data is saved in cleaned_data folder ")
