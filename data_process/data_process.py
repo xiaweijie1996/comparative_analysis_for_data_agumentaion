@@ -1,3 +1,5 @@
+import os
+
 from huggingface_hub import snapshot_download
 import pandas as pd
 import numpy as np
@@ -43,6 +45,12 @@ def process_data():
     modelling_table = modelling_table[columns]
     
     # Save energy data to clean_data folder as csv
+    # Check if cleaned_data folder exists or not, if not create the folder
+    try:
+        os.makedirs("cleaned_data")
+    except:
+        pass
+    
     modelling_table.to_csv("cleaned_data/Data_20200920_20231027.csv",index=False)
     
 
