@@ -28,8 +28,8 @@ train_data = data_dict_reserve['train_input']
 train_target = data_dict_reserve['train_output']
 train_data, train_target = dl.nan_processing(train_data, train_target)
 
-test_data = data_dict_reserve['test_input']
-test_target = data_dict_reserve['test_output']
+test_data = data_dict['test_input']
+test_target = data_dict['test_output']
 test_data, test_target = dl.nan_processing(test_data, test_target)
 
 # Fit the model

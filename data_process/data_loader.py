@@ -93,18 +93,15 @@ def train_data_reserve(data_dict, reserve_ratio):
     reserve_input = data_dict["train_input"][:reserve_size]
     reserve_output = data_dict["train_output"][:reserve_size]
     
-    # Update the train data
-    data_dict["train_input"] = data_dict["train_input"][reserve_size:]
-    data_dict["train_output"] = data_dict["train_output"][reserve_size:]
-    
-    # Define dictionary to store the data
-    data_dict["reserve_input"] = reserve_input
-    data_dict["reserve_output"] = reserve_output
-    
+    data_dict_reserve = {
+        "train_input": reserve_input,
+        "train_output": reserve_output
+    }
+
     # print('Train input shape:', data_dict["train_input"].shape)
     # print('Train output shape:', data_dict["train_output"].shape)
     
-    return data_dict
+    return data_dict_reserve
 
 class Dataloader():
     def __init__(self, data_dict, data_type, 
