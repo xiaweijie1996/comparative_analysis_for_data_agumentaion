@@ -17,6 +17,9 @@ Run the file `data_process/data_process.py`. The data will be saved in the `clea
 python data_process/data_process.p
 ```
 
+## Examples
+[svr_predictor.py](https://github.com/xiaweijie1996/comparative_analysis_for_data_agumentaion/blob/main/exp_pred/svr/svr_predictor.py) contains a example of how to use the current pipline.
+
 
 ## Original Dataset
 
