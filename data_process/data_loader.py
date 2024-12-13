@@ -87,14 +87,56 @@ def train_data_reserve(data_dict, reserve_ratio):
     
     print('Train input shape:', data_dict["train_input"].shape)
     print('Train output shape:', data_dict["train_output"].shape)
+    
     return data_dict
+
+class Dataloader():
+    def __init__(self, data_dict, data_type, 
+                 batch_size = config["Data"]["batch_size"]):
+        self.data_dict = data_dict
+        self.batch_size = batch_size
+        self.enm_index = 0
+        self.data_type = data_types
+    
+    def get_batch(self):
+        # Allow emueration over the data, until the end of the data
+        input_data = self.data_dict[self.data_type + "_input"]
+        output_data = self.data_dict[self.data_type + "_output"]
+        
+        if self.enm_index + self.batch_size > len(input_data):
+            self.enm_index = 0
+        batch_input = input_data[self.enm_index:self.enm_index + self.batch_size]
+        batch_output = output_data[self.enm_index:self.enm_index + self.batch_size]
+        self.enm_index += self.batch_size
+        
+        return batch_input, batch_output
     
 
 if __name__ == "__main__":
     # Catch the wind data
     full_input_data, full_output_data = catch_the_wind()
+    print('--------------------------------------')
     
     # Split the data into train, validation and test sets
     data_dict = split_train_test_val(full_input_data, full_output_data)
+    print('--------------------------------------')
+    
+    # Split the training data into training and reserve sets
+    data_dict_reserve = train_data_reserve(data_dict, reserve_ratio=0.5)
+    
+    # Define the data types
+    data_types = 'train'
+    
+    # Create a dataloader object
+    dataloader = Dataloader(data_dict, data_types)
+    
+    # iterate over the data
+    for i in range(100):
+        batch_input, batch_output = dataloader.get_batch()
+        print('Batch input shape:', batch_input.shape)
+        print('Batch output shape:', batch_output.shape)
+        print(i)
+        print('--------------------------------------')
+
     
     
