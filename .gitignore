@@ -4,3 +4,5 @@ data_process/.cache/
 .venv
 data_process/fulldataset/
 data_process/.gitattributes
+data_process/__pycache__/
+exp_data_aug/data_dict_0.5.pickle

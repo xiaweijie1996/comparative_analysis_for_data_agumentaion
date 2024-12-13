@@ -27,10 +27,33 @@ def catch_the_wind(path=config["Data"]["path"]):
     wind_credit_dataframe = wind_data['Wind_MWh_credit'].apply(pd.Series).add_prefix('Wind_MWh_credit_')
     
     # Concatenate the dataframes
-    full_input_data = pd.concat([day_dataframe, windspeed_dataframe], axis=1)
-    full_output_data = wind_credit_dataframe
+    full_data = pd.concat([day_dataframe, windspeed_dataframe, wind_credit_dataframe], axis=1)
+    
+    # Define the input and output data
+    input_columns = [col for col in full_data.columns if col.startswith('WindSpeed')] 
+    input_columns.append('valid_datetime')
+    output_columns = [col for col in full_data.columns if col.startswith('Wind_MWh_credit')]
+    full_input_data = full_data[input_columns]
+    full_output_data = full_data[output_columns]
     
     return full_input_data, full_output_data
+
+def nan_processing(input, output):
+    # Find the rows with nan values in the output
+    nan_index_output = np.argwhere(np.isnan(output.values)).flatten()
+    
+    # Find the rows with nan values in the input
+    nan_index_input = np.argwhere(np.isnan(input.values)).flatten()
+    
+    # Concatenate the two arrays and remove the duplicates
+    nan_index = np.unique(np.concatenate((nan_index_output, nan_index_input)))
+    
+    # Drop the rows with nan values
+    input = np.delete(input.values, nan_index, axis=0)
+    output = np.delete(output.values, nan_index, axis=0)
+    
+    return input, output # OUTPUT IS NP.ARRAY
+    
 
 def split_train_test_val(full_input_data, full_output_data,
                          split_ratios = config["Data"]["train_val_test_split"]):
@@ -59,13 +82,6 @@ def split_train_test_val(full_input_data, full_output_data,
         "val_output": val_output,
         "test_output": test_output
     }
-    # print('Train input shape:', train_input.shape)
-    # print('Train output shape:', train_output.shape)
-    # print('Validation input shape:', val_input.shape)
-    # print('Validation output shape:', val_output.shape)
-    # print('Test input shape:', test_input.shape)
-    # print('Test output shape:', test_output.shape)
-    
     return data_dict
 
 def train_data_reserve(data_dict, reserve_ratio):
@@ -131,11 +147,14 @@ if __name__ == "__main__":
     dataloader = Dataloader(data_dict, data_types)
     
     # iterate over the data
-    for i in range(100):
+    for i in range(len(data_dict[data_types + "_input"]) // config["Data"]["batch_size"]):
         batch_input, batch_output = dataloader.get_batch()
-        print('Batch input shape:', batch_input.shape)
-        print('Batch output shape:', batch_output.shape)
+        # print('Batch input shape:', batch_input.shape)
+        # print('Batch output shape:', batch_output.shape)
         print(i)
+        # Check if the batch has nan values
+        print('Nan values present in batch input:', np.isnan(batch_input).any())
+        print('Nan values present in batch output:', np.isnan(batch_output).any())
         print('--------------------------------------')
 
     
