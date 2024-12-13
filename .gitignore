@@ -1,5 +1,5 @@
 # ignore python cache files
-cleaned_data/
+cleaned_data/*
 data_process/.cache/
 .venv
 data_process/fulldataset/
