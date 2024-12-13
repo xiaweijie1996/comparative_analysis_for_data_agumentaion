@@ -1,2 +1,4 @@
 Data:
   path : 'cleaned_data/Data_20200920_20231027.csv'
+  train_val_test_split : [0.7, 0.15, 0.15]
+  
