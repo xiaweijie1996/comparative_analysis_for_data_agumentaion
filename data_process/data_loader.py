@@ -59,12 +59,12 @@ def split_train_test_val(full_input_data, full_output_data,
         "val_output": val_output,
         "test_output": test_output
     }
-    print('Train input shape:', train_input.shape)
-    print('Train output shape:', train_output.shape)
-    print('Validation input shape:', val_input.shape)
-    print('Validation output shape:', val_output.shape)
-    print('Test input shape:', test_input.shape)
-    print('Test output shape:', test_output.shape)
+    # print('Train input shape:', train_input.shape)
+    # print('Train output shape:', train_output.shape)
+    # print('Validation input shape:', val_input.shape)
+    # print('Validation output shape:', val_output.shape)
+    # print('Test input shape:', test_input.shape)
+    # print('Test output shape:', test_output.shape)
     
     return data_dict
 
@@ -85,8 +85,8 @@ def train_data_reserve(data_dict, reserve_ratio):
     data_dict["reserve_input"] = reserve_input
     data_dict["reserve_output"] = reserve_output
     
-    print('Train input shape:', data_dict["train_input"].shape)
-    print('Train output shape:', data_dict["train_output"].shape)
+    # print('Train input shape:', data_dict["train_input"].shape)
+    # print('Train output shape:', data_dict["train_output"].shape)
     
     return data_dict
 
