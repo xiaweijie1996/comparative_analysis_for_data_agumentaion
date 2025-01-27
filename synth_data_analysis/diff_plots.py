@@ -1,3 +1,8 @@
+"""
+Plotter is a class that plots synthetic data vs real data for visual analysis and comparison.
+Datasets should be provided in a form of Pandas dataframes.
+"""
+
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -13,11 +18,16 @@ class Plotter():
         self.synth_df = synth_df
         self.variables = synth_df.columns
 
+        if real_df.shape[-1] > 20:
+            raise Warning("There are a lot of columns in the provided dataset. Some plots may appear wierd. \n"
+                          "Consider limiting their number by supplying a list of necessary columns to the methods or "
+                          "here in the initialisation.")
+
     def plot_real_vs_synthetic(self, dir_save: str = './outputs/pics',
                                filename='comparison.png',
                                truncate_data: int = 5000) -> None:
         """
-        Draws 4 plots, each per variable in a dataframe
+        Draws 4 normal time series plots, each per variable in a dataframe
         """
         os.makedirs(dir_save, exist_ok=True)
         loguru.logger.info(f"Initialized with synth cols: {self.variables}")
@@ -60,6 +70,12 @@ class Plotter():
         return None
 
     def plot_correlations_together(self, filename: str = None):
+        """
+        Plots Pearson correlations of real and synthetic sets side by side.
+
+        :param filename: str to save the output
+        :return: None
+        """
         fig, axes = plt.subplots(1, 2, figsize=(16, 6))  # Two plots side by side
 
         # Synthetic Data Correlation Heatmap
