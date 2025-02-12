@@ -23,11 +23,9 @@ The folder `original_data_split` contains multiple `data_dict_x.pickle` files, w
 *Data Augmentation*: To simulate different levels of data availability, we train generative models using `data_dict_x.pickle` files with varying values of `x`. The generated synthetic data is then leveraged for training higher-level models, such as those used for forecasting.Folder `data_augmentation` contains algorithms used for data augmentation.
 
 
-*Prediction*: The augmented data is consequently used for training higher-level models.
+*Prediction*: The augmented data is consequently used for training higher-level models. Folder `exp_pred` contains algorithms used for prediction.
 
-## Examples
-[svr_predictor.py](https://github.com/xiaweijie1996/comparative_analysis_for_data_agumentaion/blob/main/exp_pred/svr/svr_predictor.py) contains a example of how to use the current pipline.
-
+ 
 
 ## Original Dataset
 
