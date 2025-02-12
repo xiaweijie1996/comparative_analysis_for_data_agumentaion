@@ -111,8 +111,8 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
 
 
 def train(model, train_loader, optimizer, epochs, cond_dim, 
-          device, scaler, test_loader, scheduler, pgap=10, 
-          index=0.1, _wandb=True, _plot=True, _save=True):
+          device, scaler, test_loader, scheduler, 
+          index, _wandb=True, _plot=True, _save=True):
     
     """
     Train the model
@@ -172,7 +172,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
         gen_test = model.inverse(noise, cond_test)
 
-        llh_test = em.calculate_energy_distances(gen_test.detach().numpy(), data_test.detach().numpy())
+        llh_test = em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
         loss_test = llh_test.mean()
         
         # Save the model
@@ -192,14 +192,13 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 re_data = re_data.detach().cpu()
             
                 if _plot:
-                    if (epoch % pgap ==0):
-                        save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
-                        plot_figure(pre, re_data, scaler, cond_dim, save_path)
+                    save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
+                    plot_figure(pre, re_data, scaler, cond_dim, save_path)
                 # ----------------- Plot the generated data -----------------
                 
         # ----------------- Test the model -----------------
             
-        print(epoch, 'loss LogLikelihood: ', loss.item(), 'loss Energy Distance: ', loss_test.item())
+        print(epoch, 'loss LogLikelihood: ', loss.item(), 'loss Distance: ', loss_test.item())
 
         
         
