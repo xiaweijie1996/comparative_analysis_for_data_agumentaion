@@ -1,8 +1,9 @@
 # ignore python cache files
-cleaned_data/*
 data_process/.cache/
 .venv
 data_process/fulldataset/
 data_process/.gitattributes
 data_process/__pycache__/
 sklearn-env/
+
+data_augmentation/FCPFlow/saved_model/FCPflow_model.pth

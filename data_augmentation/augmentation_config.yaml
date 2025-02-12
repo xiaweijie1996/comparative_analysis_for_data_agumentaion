@@ -1,0 +1,24 @@
+Path:
+  save_path: 'data_augmentation/augmented_data'
+  input_path_0.1: 'original_data_split/data_dict_0.1.pickle'
+
+FCPflow:
+  # Model parameters
+  num_blocks:  3 # number of blocks in the model
+  num_channels: 98 # resolution of the time series 
+  hidden_dim: 32 # dimension of the hidden layers
+  condition_dim: 1 # dimension of the condition vector, large than 1
+  sfactor: 0.7
+
+  # Traing parameters
+  lr_min: 0.0001
+  lr_max: 0.0005
+  lr_step_size: 20
+  w_decay: 0.0
+  batch_size: 24
+  ggap: 10
+  num_epochs: 1000
+
+  # Whether to save the model and configuration
+  figure_save: True
+  model_save: True

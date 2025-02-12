@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler
 import data_process.data_loader as dl
 
 # Catch the wind data
-full_input_data, full_output_data =  dl.catch_the_wind()
+full_input_data, full_output_data = dl.catch_the_wind()
 
 # Split the data into train, validation and test sets
 data_dict = dl.split_train_test_val(full_input_data, full_output_data)
