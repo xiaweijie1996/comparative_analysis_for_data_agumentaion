@@ -60,28 +60,28 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
         _cond_pre = orig_data_pre[:, 49:-con_dim-1].sum(axis=1)
         for i, condition in zip(orig_data_pre[:, 49:-con_dim-1], _cond_pre):
             color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
-            axs[0].plot(i, color=color, alpha=0.1)
+            axs[0].plot(i, color=color, alpha=0.3)
         axs[0].set_title('Original Wind Output')
         
         # Reconstructed/Generated data plot
         _cond_re = orig_data_re[:, 49:-con_dim-1].sum(axis=1)
         for i, condition in zip(orig_data_re[:, 49:-con_dim-1], _cond_re):
             color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
-            axs[1].plot(i, color=color, alpha=0.1)
+            axs[1].plot(i, color=color, alpha=0.3)
         axs[1].set_title('Reconstructed/Generated Wind Output')
         
         # Original data plot
         _cond_pre_w = orig_data_pre[:, :48].sum(axis=1)
         for i, condition in zip(orig_data_pre[:, :48], _cond_pre_w):
             color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
-            axs[2].plot(i, color=color, alpha=0.1)
+            axs[2].plot(i, color=color, alpha=0.3)
         axs[2].set_title('Original Wind Information (direction, speed)')
         
         # Reconstructed/Generated data plot
         _cond_re_w = orig_data_re[:, :48].sum(axis=1)
         for i, condition in zip(orig_data_re[:, :48], _cond_re_w):
             color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
-            axs[3].plot(i, color=color, alpha=0.1)
+            axs[3].plot(i, color=color, alpha=0.3)
         axs[3].set_title('Reconstructed/Generated Wind Information (direction, speed)')
         
         
