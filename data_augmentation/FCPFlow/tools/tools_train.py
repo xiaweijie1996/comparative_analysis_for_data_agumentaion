@@ -184,20 +184,22 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 loss_mid = loss_test.item()
 
                 # ----------------- Plot the generated data -----------------
+                        
+                # Plot the generated data
+                z = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
+                gen_test = model.inverse(z, cond_test)
+                re_data = torch.cat((gen_test, cond_test), dim=1)
+                re_data = re_data.detach().cpu()
+            
                 if _plot:
                     if (epoch % pgap ==0):
                         save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
                         plot_figure(pre, re_data, scaler, cond_dim, save_path)
                 # ----------------- Plot the generated data -----------------
+                
+        # ----------------- Test the model -----------------
             
         print(epoch, 'loss LogLikelihood: ', loss.item(), 'loss Energy Distance: ', loss_test.item())
-        
-        # Plot the generated data
-        z = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
-        gen_test = model.inverse(z, cond_test)
-        re_data = torch.cat((gen_test, cond_test), dim=1)
-        re_data = re_data.detach()
-        
-        # ----------------- Test the model -----------------
+
         
         
