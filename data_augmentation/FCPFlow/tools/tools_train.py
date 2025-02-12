@@ -71,22 +71,22 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
         axs[1].set_title('Reconstructed/Generated Wind Output')
         
         # Original data plot
-        _cond_pre = orig_data_pre[:, :48].sum(axis=1)
-        for i, condition in zip(orig_data_pre[:, :48], _cond_pre):
+        _cond_pre_w = orig_data_pre[:, :48].sum(axis=1)
+        for i, condition in zip(orig_data_pre[:, :48], _cond_pre_w):
             color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
             axs[2].plot(i, color=color, alpha=0.1)
         axs[2].set_title('Original Wind Information (direction, speed)')
         
         # Reconstructed/Generated data plot
-        _cond_re = orig_data_re[:, :48].sum(axis=1)
-        for i, condition in zip(orig_data_re[:, :48], _cond_re):
+        _cond_re_w = orig_data_re[:, :48].sum(axis=1)
+        for i, condition in zip(orig_data_re[:, :48], _cond_re_w):
             color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
             axs[3].plot(i, color=color, alpha=0.1)
         axs[3].set_title('Reconstructed/Generated Wind Information (direction, speed)')
         
         
         # Add colorbars to each subplot
-        for ax, _cond in zip(axs, [_cond_pre, _cond_re]):
+        for ax, _cond in zip(axs, [_cond_pre, _cond_re, _cond_pre_w, _cond_re_w]):
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=_cond.min(), vmax=_cond.max()))
             sm.set_array([])
             cbar = plt.colorbar(sm, ax=ax)
