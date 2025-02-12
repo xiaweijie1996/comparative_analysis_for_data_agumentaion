@@ -173,7 +173,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         gen_test = model.inverse(noise, cond_test)
 
         llh_test = em.calculate_energy_distances(gen_test.detach().numpy(), data_test.detach().numpy())
-        loss_test = -llh_test.mean()
+        loss_test = llh_test.mean()
         
         # Save the model
         if _save:
@@ -182,6 +182,13 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 save_path = os.path.join('data_augmentation/FCPFlow/saved_model', f'FCPflow_model_{index}.pth')
                 torch.save(model.state_dict(), save_path)
                 loss_mid = loss_test.item()
+
+                # ----------------- Plot the generated data -----------------
+                if _plot:
+                    if (epoch % pgap ==0):
+                        save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
+                        plot_figure(pre, re_data, scaler, cond_dim, save_path)
+                # ----------------- Plot the generated data -----------------
             
         print(epoch, 'loss LogLikelihood: ', loss.item(), 'loss Energy Distance: ', loss_test.item())
         
@@ -194,9 +201,3 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         # ----------------- Test the model -----------------
         
         
-        # ----------------- Plot the generated data -----------------
-        if _plot:
-            if epoch % pgap ==0: 
-                save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
-                plot_figure(pre, re_data, scaler, cond_dim, save_path)
-        # ----------------- Plot the generated data -----------------
