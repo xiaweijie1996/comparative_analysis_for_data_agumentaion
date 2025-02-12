@@ -1,6 +1,10 @@
 Path:
   save_path: 'data_augmentation/augmented_data'
   input_path_0.1: 'original_data_split/data_dict_0.1.pickle'
+  input_path_0.3: 'original_data_split/data_dict_0.3.pickle'
+  input_path_0.5: 'original_data_split/data_dict_0.5.pickle'
+  input_path_0.8: 'original_data_split/data_dict_0.8.pickle'
+  input_path_1.0: 'original_data_split/data_dict_1.0.pickle'
 
 FCPflow:
   # Model parameters

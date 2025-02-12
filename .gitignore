@@ -3,7 +3,9 @@ data_process/.cache/
 .venv
 data_process/fulldataset/
 data_process/.gitattributes
-data_process/__pycache__/
+__pycache__/
 sklearn-env/
 
-data_augmentation/FCPFlow/saved_model/FCPflow_model.pth
+# Ingore any __pycache__/
+__pycache__/
+*.pth

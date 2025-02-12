@@ -8,7 +8,7 @@ import numpy as np
 import wandb
 import time
 
-from tools.evaluation_m import MMD_kernel, pinball_loss, crps
+import tools.evaluation_m as em
 
 torch.set_default_dtype(torch.float64)
 
@@ -71,15 +71,15 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
         axs[1].set_title('Reconstructed/Generated Wind Output')
         
         # Original data plot
-        _cond_pre = orig_data_pre[:, :49].sum(axis=1)
-        for i, condition in zip(orig_data_pre[:, :49], _cond_pre):
+        _cond_pre = orig_data_pre[:, :48].sum(axis=1)
+        for i, condition in zip(orig_data_pre[:, :48], _cond_pre):
             color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
             axs[2].plot(i, color=color, alpha=0.1)
         axs[2].set_title('Original Wind Information (direction, speed)')
         
         # Reconstructed/Generated data plot
-        _cond_re = orig_data_re[:, :49].sum(axis=1)
-        for i, condition in zip(orig_data_re[:, :49], _cond_re):
+        _cond_re = orig_data_re[:, :48].sum(axis=1)
+        for i, condition in zip(orig_data_re[:, :48], _cond_re):
             color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
             axs[3].plot(i, color=color, alpha=0.1)
         axs[3].set_title('Reconstructed/Generated Wind Information (direction, speed)')
@@ -111,29 +111,28 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
 
 
 def train(model, train_loader, optimizer, epochs, cond_dim, 
-          device, scaler, test_loader, scheduler, pgap=100,
-          _wandb=True, _plot=True, _save=True):
+          device, scaler, test_loader, scheduler, pgap=10, 
+          index=0.1, _wandb=True, _plot=True, _save=True):
     
     """
     Train the model
     Args:
-        path (_type_): _description_
-        model (_type_): _description_
-        train_loader (_type_): _description_
-        optimizer (_type_): _description_
-        epochs (_type_): _description_
-        cond_dim (_type_): _description_
-        device (_type_): _description_
-        scaler (_type_): _description_
-        test_loader (_type_): _description_
-        scheduler (_type_): _description_
-        pgap (int, optional): _description_. Defaults to 100.
-        _wandb (bool, optional): _description_. Defaults to True.
-        _plot (bool, optional): _description_. Defaults to True.
-        _save (bool, optional): _description_. Defaults to True.
-        
+        model (torch.nn.Module): The generative model to be trained.
+        train_loader (torch.utils.data.DataLoader): DataLoader for training data.
+        optimizer (torch.optim.Optimizer): Optimizer used for training.
+        epochs (int): Number of training epochs.
+        cond_dim (int): Dimension of conditional variables.
+        device (torch.device): Device to run the model (CPU or GPU).
+        scaler (object): Scaler used for normalizing and inverse transforming data.
+        test_loader (torch.utils.data.DataLoader): DataLoader for testing data.
+        scheduler (torch.optim.lr_scheduler, optional): Learning rate scheduler. Defaults to None.
+        pgap (int, optional): Interval for plotting generated samples. Defaults to 100.
+        _wandb (bool, optional): Whether to log loss to Weights & Biases (wandb). Defaults to True.
+        _plot (bool, optional): Whether to plot generated samples. Defaults to True.
+        _save (bool, optional): Whether to save the model when test loss improves. Defaults to True.
+
     Returns:
-        _type_: _description_
+        none
     """
     
     model.train()
@@ -143,13 +142,13 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             model.train()
             pre = data[0].to(device) 
             
-            # split the data into data and conditions
+            # Split the data into data and conditions
             cond = pre[:,-cond_dim:]
             data = pre[:,:-cond_dim] 
             
             gen, logdet = model(data, cond)
             
-            # compute the log likelihood loss
+            # Compute the log likelihood loss
             llh = log_likelihood(gen, type='Gaussian')
             loss = -llh.mean()-logdet
             optimizer.zero_grad()
@@ -159,7 +158,6 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 scheduler.step()
             
         # ----------------- moniter loss -----------------
-        print(epoch, 'loss: ', loss.item())
         if _wandb:
             wandb.log({'loss': loss.item()})
         # ----------------- moniter loss -----------------
@@ -167,34 +165,38 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         # ----------------- test the model -----------------
         model.eval()
         
-        # test the model
+        # Test the model
         pre = next(iter(test_loader))[0].to(device)
         cond_test = pre[:,-cond_dim:]
         data_test = pre[:,:-cond_dim]
+        noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
+        gen_test = model.inverse(noise, cond_test)
+
+        llh_test = em.calculate_energy_distances(gen_test.detach().numpy(), data_test.detach().numpy())
+        loss_test = -llh_test.mean()
         
-        gen_test, logdet_test = model(data_test, cond_test)
-        llh_test = log_likelihood(gen_test, type='Gaussian')
-        loss_test = -llh_test.mean()-logdet_test
-        
-        # save the model
+        # Save the model
         if _save:
             if loss_test.item() < loss_mid:
                 print('save the model')
-                save_path = os.path.join('data_augmentation/FCPFlow/saved_model', 'FCPflow_model.pth')
+                save_path = os.path.join('data_augmentation/FCPFlow/saved_model', f'FCPflow_model_{index}.pth')
                 torch.save(model.state_dict(), save_path)
                 loss_mid = loss_test.item()
             
-            
-        # plot the generated data
+        print(epoch, 'loss LogLikelihood: ', loss.item(), 'loss Energy Distance: ', loss_test.item())
+        
+        # Plot the generated data
         z = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
         gen_test = model.inverse(z, cond_test)
         re_data = torch.cat((gen_test, cond_test), dim=1)
         re_data = re_data.detach()
-        # ----------------- test the model -----------------
         
-        # ----------------- plot the generated data -----------------
+        # ----------------- Test the model -----------------
+        
+        
+        # ----------------- Plot the generated data -----------------
         if _plot:
             if epoch % pgap ==0: 
-                save_path = os.path.join('data_augmentation/FCPFlow/saved_model','FCPflow_generated.png')
+                save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
                 plot_figure(pre, re_data, scaler, cond_dim, save_path)
-        # ----------------- plot the generated data -----------------
+        # ----------------- Plot the generated data -----------------

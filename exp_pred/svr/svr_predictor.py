@@ -21,7 +21,7 @@ full_input_data, full_output_data = dl.catch_the_wind()
 data_dict = dl.split_train_test_val(full_input_data, full_output_data)
 
 # Load the dictionary from the file
-with open(f'exp_data_aug/data_dict_0.5.pickle', 'rb') as file:
+with open('original_data_split/data_dict_0.5.pickle', 'rb') as file:
     data_dict_reserve = pickle.load(file)
     
 train_data = data_dict_reserve['train_input']
