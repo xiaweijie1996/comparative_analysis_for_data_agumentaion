@@ -22,10 +22,8 @@ The folder `original_data_split` contains multiple `data_dict_x.pickle` files, w
 ## Experiment Explanation
 *Data Augmentation*: To simulate different levels of data availability, we train generative models using `data_dict_x.pickle` files with varying values of `x`. The generated synthetic data is then leveraged for training higher-level models, such as those used for forecasting.Folder `data_augmentation` contains algorithms used for data augmentation.
 
-
 *Prediction*: The augmented data is consequently used for training higher-level models. Folder `exp_pred` contains algorithms used for prediction.
 
- 
 
 ## Original Dataset
 
