@@ -2,6 +2,8 @@ import numpy as np
 
 from sklearn.mixture import GaussianMixture
 
+from sklearn.preprocessing import StandardScaler
+
 class GMmodel:
     def __init__(self, n_iter, tol, covariance_type, n_component=None):
         self.n_component = n_component
@@ -27,6 +29,11 @@ class GMmodel:
             )
         return gmm.fit(input_data)
 
+    def _scaler(self, input_data):
+        scaler = StandardScaler()
+        self.scaler = scaler.fit(input_data)
+        return self.scaler.transform(input_data)
+        
     def _auto_components(self, input_data, max_components=10):
         """
         Determine the optimal number of components using BIC.

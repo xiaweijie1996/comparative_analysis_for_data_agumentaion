@@ -26,3 +26,8 @@ FCPflow:
   # Whether to save the model and configuration
   figure_save: True
   model_save: True
+
+GMM:
+  n_iter: 500
+  tol: 0.001
+  covariance_type: 'full'
