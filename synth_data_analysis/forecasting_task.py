@@ -215,8 +215,8 @@ def return_paths(val_name, gen_data_path, real_data_path, gen_data_filename, rea
 
 
 def main(solar: bool = False, tune: bool = False, target_horizon: int = 24,
-         gen_data_path: str = 'outputs_pres/dsets/', gen_data_filename=None,
-         real_data_path: str = 'data_pres/', real_data_filename=None ) -> None:
+         gen_data_path: str = '../outputs_pres/dsets/', gen_data_filename = None,
+         real_data_path: str = '../data_pres/', real_data_filename=None ) -> None:
 
     """Main function to run the forecasting pipeline.
     Prints out errors, plots forecasting results.
@@ -240,7 +240,7 @@ def main(solar: bool = False, tune: bool = False, target_horizon: int = 24,
     gen_data.drop(columns='Unnamed: 0', inplace=True)
 
     real_train_data = return_real_df(path_dset=real_data_path, solar=solar)
-    real_test_data = return_real_df(path_dset=f"./data_pres/test_{val_name}_ref0.csv", solar=solar)
+    real_test_data = return_real_df(path_dset=f"../data_pres/test_{val_name}_ref0.csv", solar=solar)
 
     # Prepare the data for forecasting
     prepared_gen_data = add_lags(gen_data, lag_hours=24, min_lag_hours=target_horizon, time_step_per_hour=2)
@@ -273,10 +273,11 @@ def main(solar: bool = False, tune: bool = False, target_horizon: int = 24,
     summary_df.loc['Gen-Real-Real', 'MSE'] = mse
 
     # Plot the results
+    os.makedirs('../outputs_pres/pics/', exist_ok=True)
     results_df['Predicted_synth'] = results_df_real['Predicted'].copy()
     plot_results(results_df, num_points=results_df.shape[0] // 30,
-                 figname=f'./outputs_pres/pics/{val_name}_for.png')
-    summary_df.to_csv(f"./outputs_pres/pics/{val_name}_errs_horizon{target_horizon}.csv")
+                 figname=f'../outputs_pres/pics/{val_name}_for.png')
+    summary_df.to_csv(f"../outputs_pres/{val_name}_errs_horizon{target_horizon}.csv")
 
 
 if __name__ == "__main__":
