@@ -1,4 +1,4 @@
-# Wind and Solar Data Generation
+# Quantitative Analysis on the Effects of Data Augmentation on Prediction
 
 This repository contains models for generating and processing wind and solar data.
 
