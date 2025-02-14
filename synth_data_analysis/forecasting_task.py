@@ -1,5 +1,7 @@
 """
-Simple forecasting task: predict variable for 6 hours ahead
+Simple forecasting task: predict variable for target_horizon steps ahead.
+Uses LightGBM regressor.
+Saves graphs and summary dataframes with predictions to a ../outputs_pres/ folder that is created automatically.
 """
 import pandas as pd
 import numpy as np

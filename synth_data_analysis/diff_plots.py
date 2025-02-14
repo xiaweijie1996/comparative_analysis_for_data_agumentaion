@@ -10,9 +10,24 @@ import loguru
 import seaborn as sns
 from sklearn.manifold import TSNE
 import numpy as np
+from statsmodels.graphics.tsaplots import plot_acf
 
 
-class Plotter():
+def doy_to_season(df: pd.DataFrame) -> pd.DataFrame:
+    conditions = [
+        (df['dayofyear'] >= 79) & (df['dayofyear'] <= 171),  # Spring
+        (df['dayofyear'] >= 172) & (df['dayofyear'] <= 265),  # Summer
+        (df['dayofyear'] >= 266) & (df['dayofyear'] <= 354),  # Fall
+    ]
+    seasons = ['Spring', 'Summer', 'Fall']
+
+    # Use np.select for vectorized mapping
+    df['season'] = np.select(conditions, seasons, default='Winter')
+
+    return df
+
+
+class Plotter:
     def __init__(self, real_df: pd.DataFrame, synth_df: pd.DataFrame):
         self.real_df = real_df
         self.synth_df = synth_df
@@ -25,6 +40,7 @@ class Plotter():
 
     def plot_real_vs_synthetic(self, dir_save: str = './outputs/pics',
                                filename='comparison.png',
+                               list_variables: list = None,
                                truncate_data: int = 5000) -> None:
         """
         Draws 4 normal time series plots, each per variable in a dataframe
@@ -33,18 +49,21 @@ class Plotter():
         loguru.logger.info(f"Initialized with synth cols: {self.variables}")
 
         # Plot the stuff
-        fig, axs = plt.subplots(2, 2, figsize=(20, 12))  # Adjusted figure size for better readability
+        fig, axs = plt.subplots(2, 2, figsize=(12, 10))  # Adjusted figure size for better readability
         fig.suptitle('Comparison of Real and Synthetic Data', fontsize=16)  # Add a main title
-
+        if list_variables is not None:
+            plotted_variables = list_variables
+        else:
+            plotted_variables = self.variables
         counter = 0
         for row in axs:
             for col in row:
-                if counter < len(self.variables):  # Ensure counter doesn't exceed available columns
-                    variable = self.variables[counter]
+                if counter < len(plotted_variables):  # Ensure counter doesn't exceed available columns
+                    variable = plotted_variables[counter]
                     col.plot(self.real_df.loc[:truncate_data, variable].reset_index(drop=True),
                              label=f'Real {variable}', linewidth=2)
                     col.plot(self.synth_df.loc[:truncate_data, variable].reset_index(drop=True),
-                             label=f'Synthetic {variable}', linewidth=2, alpha=0.7)
+                             label=f'Synthetic {variable}', linewidth=2, alpha=0.7, color='orange')
                     col.set_title(f'{variable}', fontsize=14)  # Set a larger title font size
                     col.set_xlabel('Index', fontsize=12)  # Add x-axis label
                     col.set_ylabel('Value', fontsize=12)  # Add y-axis label
@@ -69,18 +88,21 @@ class Plotter():
             raise Exception("Check data_type. Available options are: 'synthetic', 'synth', 'real'")
         return None
 
-    def plot_correlations_together(self, filename: str = None):
+    def plot_correlations_together(self, filename: str = None, selected_columns: list = None):
         """
         Plots Pearson correlations of real and synthetic sets side by side.
 
+        :param selected_columns: columns to consider in the heatmap
         :param filename: str to save the output
         :return: None
         """
-        fig, axes = plt.subplots(1, 2, figsize=(16, 6))  # Two plots side by side
+        fig, axes = plt.subplots(1, 2, figsize=(15, 6))  # Two plots side by side
+        if selected_columns is None:
+            selected_columns = self.variables
 
         # Synthetic Data Correlation Heatmap
         sns.heatmap(
-            pd.DataFrame(self.synth_df[self.variables].corr()),
+            pd.DataFrame(self.synth_df[selected_columns].corr()),
             annot=True, fmt=".2f", vmin=0, vmax=1, cbar=True,
             ax=axes[0]
         )
@@ -88,7 +110,7 @@ class Plotter():
 
         # Real Data Correlation Heatmap
         sns.heatmap(
-            pd.DataFrame(self.real_df[self.variables].corr()),
+            pd.DataFrame(self.real_df[selected_columns].corr()),
             annot=True, fmt=".2f", vmin=0, vmax=1, cbar=True,
             ax=axes[1]
         )
@@ -176,7 +198,7 @@ class Plotter():
                     edgecolor='black')
 
             ax.hist(self.synth_df[variable], bins=bins, alpha=0.7, label=f'Synthetic {variable}', color='orange',
-                edgecolor='black')
+                    edgecolor='black')
 
             ax.set_title(f'{variable}', fontsize=14)
             ax.set_xlabel('Value', fontsize=12)
@@ -192,3 +214,57 @@ class Plotter():
         plt.tight_layout(rect=[0, 0, 1, 0.96])
         plt.savefig(os.path.join(dir_save, filename))
         plt.show()
+
+    def pairplots(self):
+        # ToDo
+        pass
+
+    def season_plots(self, value_column: str, dir_save: str = '', filename: str = None):
+        if 'season' not in self.real_df.columns or 'season' not in self.synth_df.columns:
+            self.real_df = doy_to_season(self.real_df)
+            self.synth_df = doy_to_season(self.synth_df)
+
+        if value_column not in self.real_df.columns or value_column not in self.synth_df.columns:
+            raise ValueError(f"Both DataFrames must contain the '{value_column}' column.")
+
+        avg_values = self.real_df.groupby('season')[value_column].mean()
+        synth_avg_values = self.synth_df.groupby('season')[value_column].mean()
+
+        self.real_df.drop(columns='season', inplace=True)
+        self.synth_df.drop(columns='season', inplace=True)
+
+        seasons = avg_values.index
+        x = range(len(seasons))
+
+        plt.figure(figsize=(8, 5))
+        plt.bar(x, avg_values.values, width=0.4, label='Real', color='purple', alpha=0.7, edgecolor='black',
+                align='center')
+        plt.bar([i + 0.4 for i in x], synth_avg_values.values, width=0.4, label='Synthetic', alpha=0.7, color='orange',
+                edgecolor='black', align='center')
+
+        plt.xlabel('Season')
+        plt.ylabel(f'Average {value_column}')
+        plt.title(f'Average {value_column} by Season')
+        plt.xticks([i + 0.2 for i in x], seasons, rotation=45)
+        plt.legend()
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        if filename is not None:
+            plt.savefig(filename)
+        plt.show()
+
+    def plot_autocorrelations(self, selected_columns: list, filename: str=None):
+        fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+
+        for i, selected_column in enumerate(selected_columns[:4]):
+            plot_acf(self.real_df[selected_column],
+                     title=f'Real {selected_column}',
+                     lags=100,
+                     ax=axes[0, i])
+
+            plot_acf(self.synth_df[selected_column],
+                     title=f'Generated {selected_column}',
+                     lags=100,
+                     ax=axes[1, i])
+
+        if filename is not None:
+            plt.savefig(filename)
