@@ -42,7 +42,6 @@ def simplify_time(data: pd.DataFrame) -> pd.DataFrame:
 
     return data
 
-
 # Define a function to load the cleaned dataset
 def catch_the_wind(path=config["Data"]["path"]):
     # Read the cleaned dataset

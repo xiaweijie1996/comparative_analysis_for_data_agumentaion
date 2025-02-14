@@ -53,7 +53,6 @@ def process_data():
     
     modelling_table.to_csv("cleaned_data/Data_20200920_20231027.csv",index=False)
     
-
 if __name__ == "__main__":
     print("1)\U0001F600 Data processing started ")
     print("2)\U0001F605 Downloading the dataset from huggingface hub")

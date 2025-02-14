@@ -1,4 +1,4 @@
-# Wind and Solar Data Generation
+# Quantitative Analysis on the Effects of Data Augmentation on Prediction
 
 This repository contains models for generating and processing wind and solar data.
 
@@ -9,7 +9,7 @@ Install the required Python packages using `requirements.txt`:
 pip install -r requirements.txt
 ```
 
-## Load the Data
+## Download the Data
 
 Run the file `data_process/data_process.py`. The data will be saved in the `cleaned_data` folder.
 
@@ -17,8 +17,17 @@ Run the file `data_process/data_process.py`. The data will be saved in the `clea
 python data_process/data_process.p
 ```
 
-## Examples
-[svr_predictor.py](https://github.com/xiaweijie1996/comparative_analysis_for_data_agumentaion/blob/main/exp_pred/svr/svr_predictor.py) contains a example of how to use the current pipline.
+The folder `original_data_split` contains multiple `data_dict_x.pickle` files, where `x` represents the percentage of the training dataset included. For instance, `data_dict_0.1.pickle` contains 10% of the training data, while `data_dict_1.0.pickle` includes the entire training dataset.
+
+## Experiment Explanation
+*Data Augmentation*: To simulate different levels of data availability, we train generative models using `data_dict_x.pickle` files (in folder `original_data_split`) with varying values of `x`. The generated synthetic data is then leveraged to train higher-level models, such as those used for forecasting. The folder `data_augmentation` contains algorithms used for data augmentation.
+
+*Prediction*: The augmented data is used to train higher-level models. Folder `exp_pred` contains algorithms used for prediction.
+
+The complete experimental process is shown below in the figure:
+
+![Picture1](https://github.com/user-attachments/assets/1dc57b90-4d7d-4b38-a828-3d0a8713b7ab)
+
 
 
 ## Original Dataset
