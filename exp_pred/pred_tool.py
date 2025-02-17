@@ -40,7 +40,7 @@ def create_data_loader(numpy_array1, numpy_array2, batch_size=32, scaler = Stand
 
     return data_loader, scaler
 
-def train(model, train_loader, device, optimizer, split, epochs=10, lr=0.001, test_set=None):
+def train(model, train_loader, device, optimizer, split, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
     # Define the loss function
     criterion = nn.MSELoss()
     
@@ -70,4 +70,5 @@ def train(model, train_loader, device, optimizer, split, epochs=10, lr=0.001, te
         plt.plot(np.arange(_len, _len + target_data.size(1)), target_data[0].cpu().detach().numpy(), label='target')
         plt.plot(np.arange(_len, _len + output.size(1)), output[0].cpu().detach().numpy(), label='output')
         plt.legend()
-        plt.show()
+        plt.savefig('exp_pred/nn/saved_model/{}_pred_{}.png'.format(_model, _index))
+        plt.close()

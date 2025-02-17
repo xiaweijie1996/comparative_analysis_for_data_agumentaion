@@ -55,6 +55,6 @@ if __name__ == '__main__':
             
             pt.train(predictor, train_loader, device, optimizer, 
                      pre_config['NN']['split'], epochs=pre_config['NN']['epochs'], 
-                     lr=pre_config['NN']['lr'])
+                     lr=pre_config['NN']['lr'], _model=_m, _index=_index)
             
             break
