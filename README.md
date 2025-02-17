@@ -11,10 +11,10 @@ pip install -r requirements.txt
 
 ## Download the Data
 
-Run the file `data_process/data_process.py`. The data will be saved in the `cleaned_data` folder.
+Run the file `data_process/downloaddata.py`. The data will be saved in the `cleaned_data` folder.
 
 ```bash
-python data_process/data_process.p
+python data_process/downloaddata.py
 ```
 
 The folder `original_data_split` contains multiple `data_dict_x.pickle` files, where `x` represents the percentage of the training dataset included. For instance, `data_dict_0.1.pickle` contains 10% of the training data, while `data_dict_1.0.pickle` includes the entire training dataset.

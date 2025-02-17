@@ -2,3 +2,5 @@ Data:
   path : 'cleaned_data/Data_20200920_20231027.csv'
   train_val_test_split : [0.7, 0.2, 0.1] # train, val, test
   batch_size : 32
+  lag: [-7, -14, -21, -28, -25]
+  lag_features: ['WindSpeed_3', 'WindSpeed_4', 'WindSpeed_7', 'WindSpeed_5', 'WindSpeed_6']

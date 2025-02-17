@@ -11,3 +11,4 @@ matplotlib
 seaborn
 torch==2.6.0
 wandb==0.19.6
+lightgbm==4.6.0
