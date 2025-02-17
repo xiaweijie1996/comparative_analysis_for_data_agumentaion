@@ -14,20 +14,26 @@ import tools.tools_train as tl
 # import data_process.data_loader as dl
 
 if __name__ == '__main__':
-    # Import the configuration file
-    with open("data_augmentation/augmentation_config.yaml", "r") as file:
-        config = yaml.safe_load(file)
-        
-    # ----------------- Define the FCPflow -----------------
-    FCPflow = FCPflows.FCPflow(num_blocks=config["FCPflow"]["num_blocks"],
-                            num_channels=config["FCPflow"]["num_channels"],
-                            hidden_dim=config["FCPflow"]["hidden_dim"],
-                            condition_dim=config["FCPflow"]["condition_dim"],
-                            sfactor = config["FCPflow"]["sfactor"])
-    print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
-    
-    # ---------------Data Process-----------------
+       
     for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
+        # Clear the cache
+        torch.cuda.empty_cache()
+        
+        # Import the configuration file
+        with open("data_augmentation/augmentation_config.yaml", "r") as file:
+            config = yaml.safe_load(file)
+        
+        # ----------------- Define the FCPflow -----------------
+        FCPflow = FCPflows.FCPflow(num_blocks=config["FCPflow"]["num_blocks"],
+                                num_channels=config["FCPflow"]["num_channels"],
+                                hidden_dim=config["FCPflow"]["hidden_dim"],
+                                condition_dim=config["FCPflow"]["condition_dim"],
+                                sfactor = config["FCPflow"]["sfactor"])
+        
+        print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
+    
+        # ---------------Data Process-----------------
+    
         with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
             _data = pickle.load(file)
             # Fill nan with mean

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import wandb
 import time
+import psutil
 
 import tools.evaluation_m as em
 
@@ -112,7 +113,7 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
 
 def train(model, train_loader, optimizer, epochs, cond_dim, 
           device, scaler, test_loader, scheduler, 
-          index, _wandb=True, _plot=True, _save=True):
+          index, _wandb=False, _plot=False, _save=True):
     
     """
     Train the model
@@ -152,7 +153,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             llh = log_likelihood(gen, type='Gaussian')
             loss = -llh.mean()-logdet
             optimizer.zero_grad()
-            loss.backward(retain_graph=True)
+            loss.backward()
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
@@ -164,17 +165,17 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             
         # ----------------- test the model -----------------
         model.eval()
-        
-        # Test the model
-        pre = next(iter(test_loader))[0].to(device)
-        cond_test = pre[:,-cond_dim:]
-        data_test = pre[:,:-cond_dim]
-        noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
-        gen_test = model.inverse(noise, cond_test)
+        with torch.no_grad():
+            # Test the model
+            pre = next(iter(test_loader))[0].to(device)
+            cond_test = pre[:,-cond_dim:]
+            data_test = pre[:,:-cond_dim]
+            noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
+            gen_test = model.inverse(noise, cond_test)
 
-        llh_test =  loss # em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
-        loss_test = llh_test.mean()
-        
+            llh_test =  loss # em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
+            loss_test = llh_test.mean()
+            
         # Save the model
         if _save:
             if loss_test.item() < loss_mid:
@@ -198,7 +199,6 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 
         # ----------------- Test the model -----------------
             
-        print(epoch, 'loss LogLikelihood: ', loss.item(), 'loss Distance: ', loss_test.item())
+        print(epoch, 'loss LogLikelihood: ', loss.item(),'Memory Usage:', psutil.virtual_memory().percent) # , 'loss Distance: ', loss_test.item())
 
-        
         
