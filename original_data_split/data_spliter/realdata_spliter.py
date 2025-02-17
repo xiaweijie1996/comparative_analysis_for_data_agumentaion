@@ -24,8 +24,8 @@ if __name__ == '__main__':
     for reserve_ratio in reserve_ratios:
         data_dict_reserve = dp.train_data_reserve(data_dict, reserve_ratio)
         
-        print(data_dict_reserve['train_input'].head(),
-                data_dict_reserve['train_output'].head())
+        # print(data_dict_reserve['train_input'].head(),
+        #         data_dict_reserve['train_output'].head())
                 
         # Save the dictionary to a file
         with open(f'original_data_split/data_dict_{reserve_ratio}.pickle', 'wb') as file:
@@ -38,4 +38,8 @@ if __name__ == '__main__':
         print(data_dict_reserve['train_input'].shape,
                 data_dict_reserve['train_output'].shape)
         print('--------------------------------------')
+    
+    # Save test data to a file
+    with open('original_data_split/data_dict.pickle', 'wb') as file:
+        pickle.dump(data_dict, file)
 

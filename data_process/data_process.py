@@ -105,17 +105,17 @@ def feature_lag(full_input_data,
 
 def nan_processing(input, output):
     # Find the rows with nan values in the output
-    nan_index_output = np.argwhere(np.isnan(output.values)).flatten()
+    nan_index_output = np.argwhere(np.isnan(output)).flatten()
 
     # Find the rows with nan values in the input
-    nan_index_input = np.argwhere(np.isnan(input.values)).flatten()
+    nan_index_input = np.argwhere(np.isnan(input)).flatten()
 
     # Concatenate the two arrays and remove the duplicates
     nan_index = np.unique(np.concatenate((nan_index_output, nan_index_input)))
 
     # Drop the rows with nan values
-    input = np.delete(input.values, nan_index, axis=0)
-    output = np.delete(output.values, nan_index, axis=0)
+    input = np.delete(input, nan_index, axis=0)
+    output = np.delete(output, nan_index, axis=0)
 
     return input, output  # OUTPUT IS NP.ARRAY
 
@@ -127,16 +127,22 @@ def split_train_test_val(full_input_data, full_output_data,
     train_size = int(len(full_input_data) * train_ratio)
     val_size = int(len(full_input_data) * val_ratio)
     test_size = len(full_input_data) - train_size - val_size
+    # Cancel nan values
+    full_input_data, full_output_data = nan_processing(full_input_data, full_output_data)
 
     # Split the full input data
     train_input = full_input_data[:train_size]
     val_input = full_input_data[train_size:train_size + val_size]
     test_input = full_input_data[-test_size:]
-
+    # Cancel nan values
+    train_input, train_output = nan_processing(train_input, full_output_data[:train_size])
+    
     # Split the full output data
     train_output = full_output_data[:train_size]
     val_output = full_output_data[train_size:train_size + val_size]
     test_output = full_output_data[-test_size:]
+    # Cancel nan values
+    val_input, val_output = nan_processing(val_input, full_output_data[train_size:train_size + val_size])
 
     # Define dictionary to store the data
     data_dict = {

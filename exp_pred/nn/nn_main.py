@@ -29,12 +29,18 @@ if __name__ == '__main__':
             aug_data = pd.read_csv(datapath, index_col=0).values
             
             # Load real data
-            real_data_path = f'original_data_split/data_dict_{_index}.pickle'
+            real_data_train_path = f'original_data_split/data_dict_{_index}.pickle'
+            with open(real_data_train_path, 'rb') as f:
+                real_data_train = pickle.load(f)
+                real_data_train = np.hstack((real_data_train['train_input'], real_data_train['train_output']))
+            
+            real_data_path = f'original_data_split/data_dict.pickle'
             with open(real_data_path, 'rb') as f:
                 real_data = pickle.load(f)
-                real_data = np.hstack((real_data['train_input'], real_data['train_output']))
+                real_data_test = np.hstack((real_data['test_input'], real_data['test_output']))
+                real_data_val = np.hstack((real_data['val_input'], real_data['val_output']))
             
-            train_loader, scaler = pt.create_data_loader(real_data, aug_data, 
+            train_loader, scaler = pt.create_data_loader(real_data_train, aug_data, 
                                                          batch_size=pre_config['NN']['batch_size'], 
                                                          default_length=pre_config['NN']['default_length'],
                                                          shuffle=True)
@@ -54,7 +60,24 @@ if __name__ == '__main__':
             optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'])
             
             pt.train(predictor, train_loader, device, optimizer, 
-                     pre_config['NN']['split'], epochs=pre_config['NN']['epochs'], 
-                     lr=pre_config['NN']['lr'], _model=_m, _index=_index)
+                     pre_config['NN']['split'], scaler, epochs=pre_config['NN']['epochs'], 
+                     lr=pre_config['NN']['lr'], _model=_m, _index=_index,
+                     test_set=real_data_test)
             
-            break
+            # ---------- Test the model -----------------
+            predictor.model.eval()
+
+            # Make prediction
+            scaled_val_data = scaler.transform(real_data_val)
+            scaled_val_data = torch.Tensor(scaled_val_data).to(device)
+            input_data = scaled_val_data[:, :-pre_config['NN']['split']]
+            target_data = scaled_val_data[:, -pre_config['NN']['split']]
+            output = predictor.model(input_data)
+            pre_data = np.hstack((input_data, output.cpu().detach().numpy()))
+            pre_data = scaler.inverse_transform(pre_data)
+            
+            # Save the prediction
+            save_pred_path = f'exp_pred/pred_results/{_m}_pred_results_{_index}.pickle'
+            with open(save_pred_path, 'wb') as f:
+                pickle.dump(pre_data, f)
+        
