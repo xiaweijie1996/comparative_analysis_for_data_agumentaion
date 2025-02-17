@@ -3,6 +3,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 import pickle
+import pandas as pd
 
 import data_process.data_process as dp
 
@@ -22,10 +23,10 @@ if __name__ == '__main__':
     reserve_ratios = [0.1, 0.3, 0.5, 0.8, 1.0]
     for reserve_ratio in reserve_ratios:
         data_dict_reserve = dp.train_data_reserve(data_dict, reserve_ratio)
-
-        print(data_dict_reserve['train_input'].shape,
-                data_dict_reserve['train_output'].shape)
-
+        
+        print(data_dict_reserve['train_input'].head(),
+                data_dict_reserve['train_output'].head())
+                
         # Save the dictionary to a file
         with open(f'original_data_split/data_dict_{reserve_ratio}.pickle', 'wb') as file:
             pickle.dump(data_dict_reserve, file)

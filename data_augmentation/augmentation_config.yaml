@@ -9,7 +9,7 @@ Path:
 FCPflow:
   # Model parameters
   num_blocks:  3 # number of blocks in the model
-  num_channels: 98 # resolution of the time series 
+  num_channels: 118 # resolution of the time series 
   hidden_dim: 32 # dimension of the hidden layers
   condition_dim: 1 # dimension of the condition vector, large than 1
   sfactor: 0.7
@@ -19,15 +19,15 @@ FCPflow:
   lr_max: 0.0005
   lr_step_size: 20
   w_decay: 0.0
-  batch_size: 100
+  batch_size: 48
   ggap: 10
-  num_epochs: 400
+  num_epochs: 4000
 
   # Whether to save the model and configuration
   figure_save: True
   model_save: True
 
 GMM:
-  n_iter: 500
-  tol: 0.001
+  n_iter: 5000
+  tol: 0.0001
   covariance_type: 'full'

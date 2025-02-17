@@ -172,7 +172,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
         gen_test = model.inverse(noise, cond_test)
 
-        llh_test = em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
+        llh_test =  loss # em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
         loss_test = llh_test.mean()
         
         # Save the model

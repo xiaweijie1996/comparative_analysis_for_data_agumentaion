@@ -6,6 +6,7 @@ import yaml
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 import alg.gmm_model as gmm_piplie
 
@@ -18,15 +19,19 @@ if __name__ == '__main__':
     gmm = gmm_piplie.GMmodel(n_iter=config["GMM"]["n_iter"], 
                              tol=config["GMM"]["tol"], 
                              covariance_type=config["GMM"]["covariance_type"],
+                             n_component=5
                             )
     
     # --------------------- Data Process -----------------
     for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
         with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
             _data = pickle.load(file)
-        
+            input_length = _data['train_input'].shape[1]
+            output_length = _data['train_output'].shape[1]
+            
         # Split the data into train, validation and test sets
         _data = np.hstack((_data['train_input'], _data['train_output']))
+        
         # Drop nan
         _data = _data[~np.isnan(_data).any(axis=1)]
         print(_data.shape)
@@ -46,6 +51,15 @@ if __name__ == '__main__':
         # ----------------- Sample and Plot -----------------
         _samples, _ = fitted_gmm.sample(1000)
         _samples = gmm.scaler.inverse_transform(_samples)
+        
+        # Save sampled data as csv
+        save_path = os.path.join('data_augmentation/augmented_data', f'gmm_generated_data_{_index}.csv')
+        _input_column = [f'input_{i}' for i in range(input_length)]
+        _output_column = [f'output_{i}' for i in range(output_length)]
+        _columns = _input_column + _output_column
+        _frame = pd.DataFrame(_samples)
+        _frame.columns = _columns
+        _frame.to_csv(save_path)
         
         # Plot the original data and the GMM
         plt.figure(figsize=(10, 20))

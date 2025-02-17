@@ -7,6 +7,7 @@ import wandb
 import yaml
 import pickle
 import numpy as np
+import pandas as pd
 
 import alg.models_fcpflow_lin as FCPflows
 import tools.tools_train as tl
@@ -29,13 +30,15 @@ if __name__ == '__main__':
     for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
         with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
             _data = pickle.load(file)
-        
+            # Fill nan with mean
+            _data['train_input'] = np.nan_to_num(_data['train_input'], nan=np.nanmean(_data['train_input']))
+            _data['train_output'] = np.nan_to_num(_data['train_output'], nan=np.nanmean(_data['train_output']))
+            
         # Split the data into train, validation and test sets
         _data = np.hstack((_data['train_input'], _data['train_output']))
         _data = torch.tensor(_data, dtype=torch.float32)
         _zeros = torch.zeros(_data.shape[0], 2)
         _data = torch.cat((_data, _zeros), dim=1)
-        print(_data.shape)
         
         # Define the data loader
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
@@ -54,5 +57,22 @@ if __name__ == '__main__':
                 config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
                 _index, _wandb=False, _save=True, _plot=True)
 
-        print("Training completed successfully!")
+        print(f"Training completed successfully for index {_index}!")
+
+        # ----------------- Sample-----------------
+        FCPflow.eval()
+        cond_test = torch.zeros(1000, 1)
+        noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
+        gen_test = FCPflow.inverse(noise, cond_test)
+        gen_test = torch.cat((gen_test, cond_test), dim=1)
+        gen_test = _scaler.inverse_transform( gen_test.detach().cpu().numpy())
+        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1].detach().cpu().numpy()
+        
+        save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_{_index}.csv')
+        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-49)]
+        _output_column = [f'output_{i}' for i in range(48)]
+        _columns = _input_column + _output_column
+        _frame = pd.DataFrame(gen_test)
+        _frame.columns = _columns
+        _frame.to_csv(save_path)
         
