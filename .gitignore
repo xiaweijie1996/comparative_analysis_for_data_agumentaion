@@ -9,3 +9,4 @@ sklearn-env/
 # Ingore any __pycache__/
 __pycache__/
 *.pth
+*.pt
