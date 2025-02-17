@@ -11,7 +11,10 @@ import data_process.data_process as dp
 if __name__ == '__main__':
     # Catch the wind data
     full_input_data, full_output_data =  dp.catch_the_wind()
-
+    
+    # Add lags to the data
+    full_input_data, full_output_data = dp.feature_lag(full_input_data, full_output_data)
+    
     # Split the data into train, validation and test sets
     data_dict = dp.split_train_test_val(full_input_data, full_output_data)
 
