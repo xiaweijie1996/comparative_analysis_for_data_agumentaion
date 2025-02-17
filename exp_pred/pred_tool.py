@@ -99,5 +99,6 @@ def train(model, train_loader, device, optimizer, split, scaler, epochs=10, lr=0
             plt.plot(np.arange(_len, _len + target_data.size(1)), target_data[0].cpu().detach().numpy(), label='target')
             plt.plot(np.arange(_len, _len + output.size(1)), output[0].cpu().detach().numpy(), label='output')
             plt.legend()
+            plt.title('Data_augmentation_{}'.format(_index))
             plt.savefig('exp_pred/nn/saved_model/{}_pred_{}.png'.format(_model, _index))
             plt.close()
