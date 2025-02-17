@@ -49,7 +49,6 @@ if __name__ == '__main__':
             print('Number of parameters: {}'.format(sum(p.numel() for p in predictor.model.parameters())))
             
             predictor.model.to(device)
-            _data = next(iter(train_loader))[0].to(device)
 
             # ---------- Train the model -----------------
             optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'])
