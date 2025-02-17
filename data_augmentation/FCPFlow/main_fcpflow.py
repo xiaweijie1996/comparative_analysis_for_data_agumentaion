@@ -23,13 +23,16 @@ if __name__ == '__main__':
         with open("data_augmentation/augmentation_config.yaml", "r") as file:
             config = yaml.safe_load(file)
         
+        # Device configuration
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
         # ----------------- Define the FCPflow -----------------
         FCPflow = FCPflows.FCPflow(num_blocks=config["FCPflow"]["num_blocks"],
                                 num_channels=config["FCPflow"]["num_channels"],
                                 hidden_dim=config["FCPflow"]["hidden_dim"],
                                 condition_dim=config["FCPflow"]["condition_dim"],
                                 sfactor = config["FCPflow"]["sfactor"])
-        
+        FCPflow.to(device)
         print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
     
         # ---------------Data Process-----------------
@@ -48,9 +51,6 @@ if __name__ == '__main__':
         
         # Define the data loader
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
-
-        # Device configuration
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # ----------------- Train Model -----------------
         optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"], weight_decay=config["FCPflow"]["w_decay"])
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         # ----------------- Sample-----------------
         FCPflow.eval()
-        cond_test = torch.zeros(1000, 1)
+        cond_test = torch.zeros(1000, 1).to(device)
         noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
         gen_test = FCPflow.inverse(noise, cond_test)
         gen_test = torch.cat((gen_test, cond_test), dim=1)
