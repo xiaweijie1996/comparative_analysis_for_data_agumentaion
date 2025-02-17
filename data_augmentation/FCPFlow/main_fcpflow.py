@@ -65,8 +65,8 @@ if __name__ == '__main__':
         noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
         gen_test = FCPflow.inverse(noise, cond_test)
         gen_test = torch.cat((gen_test, cond_test), dim=1)
-        gen_test = _scaler.inverse_transform( gen_test.detach().cpu().numpy())
-        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1].detach().cpu().numpy()
+        gen_test = _scaler.inverse_transform(gen_test.detach().cpu().numpy())
+        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1]
         
         save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_{_index}.csv')
         _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-49)]
