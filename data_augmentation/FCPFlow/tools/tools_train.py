@@ -198,7 +198,6 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 # ----------------- Plot the generated data -----------------
                 
         # ----------------- Test the model -----------------
-            
         print(epoch, 'loss LogLikelihood: ', loss.item(),'Memory Usage:', psutil.virtual_memory().percent) # , 'loss Distance: ', loss_test.item())
 
         
