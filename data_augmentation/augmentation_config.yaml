@@ -10,7 +10,7 @@ FCPflow:
   # Model parameters
   num_blocks:  3 # number of blocks in the model
   num_channels: 118 # resolution of the time series 
-  hidden_dim: 32 # dimension of the hidden layers
+  hidden_dim: 128 # dimension of the hidden layers
   condition_dim: 1 # dimension of the condition vector, large than 1
   sfactor: 0.7
 
