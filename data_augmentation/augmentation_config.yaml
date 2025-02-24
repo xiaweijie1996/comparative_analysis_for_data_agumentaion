@@ -31,3 +31,10 @@ GMM:
   n_iter: 5000
   tol: 0.0001
   covariance_type: 'full'
+
+Data_num:
+  0.1: 87
+  0.3: 262
+  0.5: 437
+  0.8: 699
+  1.0: 874
