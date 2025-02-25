@@ -18,6 +18,9 @@ if __name__ == '__main__':
     # Import the configuration file
     with open("data_augmentation/augmentation_config.yaml", "r") as file:
         config = yaml.safe_load(file)
+            
+    # Device configuration
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
        
     # ----------------- Define the FCPflow -----------------
     FCPflow = FCPflows.FCPflow(num_blocks=config["FCPflow"]["num_blocks"],
@@ -29,10 +32,6 @@ if __name__ == '__main__':
     print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
         
     for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
-        
-        # Device configuration
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        
         # ---------------Data Process-----------------
     
         with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
