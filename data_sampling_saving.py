@@ -1,3 +1,13 @@
+"""
+This script provides functions for sampling time-series data with a 30-minute resolution, ensuring that only complete
+days (48 samples per day) are retained before selection. The sampling can be performed in two ways:
+
+Continuous Sampling: Selects the last n% of full days.
+Distributed Sampling: Selects n% of full days evenly throughout the dataset.
+
+Script uses train set from the dsets/ folder. It then creates a dsets/percentage subfolder to save resulting csv.
+"""
+
 import os
 import loguru
 import pandas as pd
@@ -111,5 +121,5 @@ if __name__ == '__main__':
             save_path = os.path.join('dsets', 'percentage', mode)
             os.makedirs(save_path, exist_ok=True)
             smaller_df = sampling(orig_df, mode, n_percent)
-            # smaller_df.to_csv(os.path.join(save_path, f'{n_percent}percent_dataset.csv'))
+            smaller_df.to_csv(os.path.join(save_path, f'{n_percent}percent_dataset.csv'))
         loguru.logger.info("Done!")
