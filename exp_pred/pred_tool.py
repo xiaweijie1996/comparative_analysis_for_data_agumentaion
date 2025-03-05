@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, MinMaxScaler 
 import matplotlib.pyplot as plt
 
-def create_data_loader(numpy_array1, numpy_array2, batch_size=32, scaler = StandardScaler(), default_length = 765, shuffle=True):
+def create_data_loader(numpy_array2, batch_size=32, scaler = StandardScaler(), default_length = 765, shuffle=True):
     """
     Create a DataLoader from two NumPy arrays.
 
@@ -25,15 +25,15 @@ def create_data_loader(numpy_array1, numpy_array2, batch_size=32, scaler = Stand
     """
     
     # Check if nan exists in the data, if nan drop
-    if np.isnan(numpy_array1).any():
-        numpy_array1 = numpy_array1[~np.isnan(numpy_array1).any(axis=1)]
+    # if np.isnan(numpy_array1).any():
+    #     numpy_array1 = numpy_array1[~np.isnan(numpy_array1).any(axis=1)]
     
-    len_1 = numpy_array1.shape[1]
-    sample_len = default_length - len_1 # Sample length from numpy_array1
-    numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
+    # len_1 = numpy_array1.shape[1]
+    # sample_len = default_length - len_1 # Sample length from numpy_array1
+    # numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
 
     # Concatenate the two numpy arrays
-    numpy_array = np.vstack((numpy_array1, numpy_array2))
+    numpy_array = numpy_array2
     
     # Scalr the data
     numpy_array = scaler.fit_transform(numpy_array)
