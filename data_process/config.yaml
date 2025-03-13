@@ -1,6 +1,0 @@
-Data:
-  path : 'cleaned_data/Data_20200920_20231027.csv'
-  train_val_test_split : [0.8, 0.1, 0.1] # train, val, test
-  batch_size : 32
-  lag: [-7, -13, -19, -25] # Steps to lag, negative values means lagging in the past, currently lag 3, 6, 9, and 12 hours
-  lag_features: ['WindSpeed_3', 'WindSpeed_4', 'WindSpeed_7', 'WindSpeed_5', 'WindSpeed_6'] # WindSeep_0 to 48
