@@ -86,7 +86,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     
     # Sample data from the GMM
-    _samples, _ = fitted_gmm.sample(1000)
+    _samples, _ = fitted_gmm.sample(978)
     
     plt.scatter(X[:, 0], X[:, 1], s=1)
     plt.scatter(_samples[:, 0], _samples[:, 1], marker='x', color='red')
