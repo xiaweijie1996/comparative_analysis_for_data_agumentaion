@@ -31,20 +31,17 @@ if __name__ == '__main__':
     FCPflow.to(device)
     print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
         
-    for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
+    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
         # ---------------Data Process-----------------
-    
-        with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
-            _data = pickle.load(file)
-            # Fill nan with mean
-            _data['train_input'] = np.nan_to_num(_data['train_input'], nan=np.nanmean(_data['train_input']))
-            _data['train_output'] = np.nan_to_num(_data['train_output'], nan=np.nanmean(_data['train_output']))
+        _data_path = config["Path"][f"input_path_{_index}"]  
+        data_reshape = tl.Datareshape(_data_path)
+        _data = data_reshape.creat_new_frame()
+        _data = _data.values
             
         # Split the data into train, validation and test sets
-        _data = np.hstack((_data['train_input'], _data['train_output']))
         _original_data = _data.copy()
         _data = torch.tensor(_data, dtype=torch.float32)
-        _zeros = torch.zeros(_data.shape[0], 2)
+        _zeros = torch.zeros(_data.shape[0], 1)
         _data = torch.cat((_data, _zeros), dim=1)
         
         # Define the data loader
@@ -65,19 +62,19 @@ if __name__ == '__main__':
 
         # ----------------- Sample-----------------
         FCPflow.eval()
-        
-        num_samples = 1000 - config['Data_num'][_index]
+        num_samples = 978 # 1000 - config['Data_num'][_index]
         cond_test = torch.zeros(num_samples, 1).to(device)
         noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
         gen_test = FCPflow.inverse(noise, cond_test)
         gen_test = torch.cat((gen_test, cond_test), dim=1)
         gen_test = _scaler.inverse_transform(gen_test.detach().cpu().numpy())
-        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1]
+        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]]
         
         save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_{_index}.csv')
-        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-49)]
+        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-48)]
         _output_column = [f'output_{i}' for i in range(48)]
         _columns = _input_column + _output_column
+        
         # Concatenate the _data with gen_test
         _frame = pd.DataFrame(gen_test)
         _frame = pd.concat([_frame, pd.DataFrame(_original_data)], axis=0)
@@ -85,22 +82,22 @@ if __name__ == '__main__':
         print(_frame.shape)
         _frame.to_csv(save_path)
         
-        if _index == 1.0:
-            num_samples = 1000
-            cond_test = torch.zeros(num_samples, 1).to(device)
-            noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
-            gen_test = FCPflow.inverse(noise, cond_test)
-            gen_test = torch.cat((gen_test, cond_test), dim=1)
-            gen_test = _scaler.inverse_transform(gen_test.detach().cpu().numpy())
-            gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1]
+        # if _index == 1.0:
+        #     # num_samples = 1000
+        #     cond_test = torch.zeros(num_samples, 1).to(device)
+        #     noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
+        #     gen_test = FCPflow.inverse(noise, cond_test)
+        #     gen_test = torch.cat((gen_test, cond_test), dim=1)
+        #     gen_test = _scaler.inverse_transform(gen_test.detach().cpu().numpy())
+        #     gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1]
             
-            save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_0.csv')
-            _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-49)]
-            _output_column = [f'output_{i}' for i in range(48)]
-            _columns = _input_column + _output_column
-            # Concatenate the _data with gen_test
-            _frame = pd.DataFrame(gen_test)
-            _frame.columns = _columns
-            print(_frame.shape)
-            _frame.to_csv(save_path)
+        #     save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_0.csv')
+        #     _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-49)]
+        #     _output_column = [f'output_{i}' for i in range(48)]
+        #     _columns = _input_column + _output_column
+        #     # Concatenate the _data with gen_test
+        #     _frame = pd.DataFrame(gen_test)
+        #     _frame.columns = _columns
+        #     print(_frame.shape)
+        #     _frame.to_csv(save_path)
             

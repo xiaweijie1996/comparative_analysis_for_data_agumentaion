@@ -5,6 +5,7 @@ data_process/fulldataset/
 data_process/.gitattributes
 __pycache__/
 sklearn-env/
+dsets/percentage/distributed
 
 # Ingore any __pycache__/
 __pycache__/

@@ -1,16 +1,17 @@
 Path:
   save_path: 'data_augmentation/augmented_data'
-  input_path_0.1: 'original_data_split/data_dict_0.1.pickle'
-  input_path_0.3: 'original_data_split/data_dict_0.3.pickle'
-  input_path_0.5: 'original_data_split/data_dict_0.5.pickle'
-  input_path_0.8: 'original_data_split/data_dict_0.8.pickle'
-  input_path_1.0: 'original_data_split/data_dict_1.0.pickle'
+  input_path_0.05: 'dsets/percentage/continuous/5percent_dataset.csv'
+  input_path_0.1: 'dsets/percentage/continuous/10percent_dataset.csv'
+  input_path_0.3: 'dsets/percentage/continuous/30percent_dataset.csv'
+  input_path_0.5: 'dsets/percentage/continuous/50percent_dataset.csv'
+  input_path_0.8: 'dsets/percentage/continuous/80percent_dataset.csv'
+  input_path_1.0: 'dsets/percentage/continuous/100percent_dataset.csv'
 
 FCPflow:
   # Model parameters
   num_blocks:  3 # number of blocks in the model
-  num_channels: 118 # resolution of the time series 
-  hidden_dim: 128 # dimension of the hidden layers
+  num_channels: 432 # resolution of the time series 
+  hidden_dim: 12 # dimension of the hidden layers
   condition_dim: 1 # dimension of the condition vector, large than 1
   sfactor: 0.7
 
@@ -33,6 +34,7 @@ GMM:
   covariance_type: 'full'
 
 Data_num:
+  0.05: 32
   0.1: 87
   0.3: 262
   0.5: 437
