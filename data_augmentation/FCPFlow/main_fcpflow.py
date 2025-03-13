@@ -77,11 +77,20 @@ if __name__ == '__main__':
         
         # Concatenate the _data with gen_test
         _frame = pd.DataFrame(gen_test)
-        _frame = pd.concat([_frame, pd.DataFrame(_original_data)], axis=0)
+        _frame = pd.concat([_frame], axis=0)
         _frame.columns = _columns
         print(_frame.shape)
         _frame.to_csv(save_path)
         
+        # Restor the data into a dictionary
+        _data_dict = data_reshape.restor_shape(_frame)
+        
+        # Save the data into a pickle file
+        _paht = f'data_augmentation/augmented_data/{_index*100}percent_dict_fcpflow.pkl'
+        with open(_paht, 'wb') as _file:
+            pickle.dump(_data_dict, _file)
+        
+
         # if _index == 1.0:
         #     # num_samples = 1000
         #     cond_test = torch.zeros(num_samples, 1).to(device)
