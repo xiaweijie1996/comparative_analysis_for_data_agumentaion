@@ -127,13 +127,20 @@ def split_train_test_val(full_input_data, full_output_data,
     train_size = int(len(full_input_data) * train_ratio)
     val_size = int(len(full_input_data) * val_ratio)
     test_size = len(full_input_data) - train_size - val_size
+    
     # Cancel nan values
     full_input_data, full_output_data = nan_processing(full_input_data, full_output_data)
+    
+    # Random the order of the full data
+    random_index = np.random.permutation(len(full_input_data))
+    full_input_data = full_input_data[random_index]
+    full_output_data = full_output_data[random_index]
 
     # Split the full input data
     train_input = full_input_data[:train_size]
     val_input = full_input_data[train_size:train_size + val_size]
     test_input = full_input_data[-test_size:]
+    
     # Cancel nan values
     train_input, train_output = nan_processing(train_input, full_output_data[:train_size])
     

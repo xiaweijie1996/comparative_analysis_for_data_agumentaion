@@ -34,7 +34,6 @@ if __name__ == '__main__':
         
         # Drop nan
         _data = _data[~np.isnan(_data).any(axis=1)]
-        print(_data.shape)
         
         # ----------------- Fit the GMM -----------------
         _data_scaled = gmm._scaler(_data)
@@ -49,7 +48,8 @@ if __name__ == '__main__':
             pickle.dump(fitted_gmm, file)
         
         # ----------------- Sample and Plot -----------------
-        _samples, _ = fitted_gmm.sample(1000)
+        num_sample = 1000 - config['Data_num'][_index]
+        _samples, _ = fitted_gmm.sample(num_sample)
         _samples = gmm.scaler.inverse_transform(_samples)
         
         # Save sampled data as csv
@@ -58,27 +58,42 @@ if __name__ == '__main__':
         _output_column = [f'output_{i}' for i in range(output_length)]
         _columns = _input_column + _output_column
         _frame = pd.DataFrame(_samples)
+        _frame = pd.concat([_frame, pd.DataFrame(_data)], axis=0)
         _frame.columns = _columns
         _frame.to_csv(save_path)
         
-        # Plot the original data and the GMM
-        plt.figure(figsize=(10, 20))
+        if _index == 1.0:
+            num_sample = 1000
+            _samples, _ = fitted_gmm.sample(num_sample)
+            _samples = gmm.scaler.inverse_transform(_samples)
+            
+            # Save sampled data as csv
+            save_path = os.path.join('data_augmentation/augmented_data', f'gmm_generated_data_0.csv')
+            _input_column = [f'input_{i}' for i in range(input_length)]
+            _output_column = [f'output_{i}' for i in range(output_length)]
+            _columns = _input_column + _output_column
+            _frame = pd.DataFrame(_samples)
+            _frame.columns = _columns
+            _frame.to_csv(save_path)
         
-        # Plot the first axis
-        plt.subplot(4, 1, 1)
-        plt.plot(_data[:, :48], label='Original Wind Direction & Speed', c='blue', alpha=0.5)
+        # # Plot the original data and the GMM
+        # plt.figure(figsize=(10, 20))
         
-        # Plot the second axis
-        plt.subplot(4, 1, 2)
-        plt.plot(_samples[:, :48], label='Generated Wind Direction & Speed', c='blue', alpha=0.5)
+        # # Plot the first axis
+        # plt.subplot(4, 1, 1)
+        # plt.plot(_data[:, :48], label='Original Wind Direction & Speed', c='blue', alpha=0.5)
         
-        # Plot the third axis
-        plt.subplot(4, 1, 3)
-        plt.plot(_data[:, 49:], label='Original Wind Output', c='red', alpha=0.5)
+        # # Plot the second axis
+        # plt.subplot(4, 1, 2)
+        # plt.plot(_samples[:, :48], label='Generated Wind Direction & Speed', c='blue', alpha=0.5)
         
-        # Plot the fourth axis
-        plt.subplot(4, 1, 4)
-        plt.plot(_samples[:, 49:], label='Generated Wind Output', c='red', alpha=0.5)
+        # # Plot the third axis
+        # plt.subplot(4, 1, 3)
+        # plt.plot(_data[:, 49:], label='Original Wind Output', c='red', alpha=0.5)
         
-        plt.savefig(f'data_augmentation/GMM/saved_model/Generated Data Comparison_{_index}.png')
-        plt.close()
+        # # Plot the fourth axis
+        # plt.subplot(4, 1, 4)
+        # plt.plot(_samples[:, 49:], label='Generated Wind Output', c='red', alpha=0.5)
+        
+        # plt.savefig(f'data_augmentation/GMM/saved_model/Generated Data Comparison_{_index}.png')
+        # plt.close()

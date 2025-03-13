@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     for mode in ['continuous', 'distributed']:
         loguru.logger.info(f"Preparing {mode} sets")
-        for n_percent in [10, 30, 50, 80, 100]:
+        for n_percent in [5, 10, 30, 50, 80, 100]:
             save_path = os.path.join('dsets', 'percentage', mode)
             os.makedirs(save_path, exist_ok=True)
             smaller_df = sampling(orig_df, mode, n_percent)
