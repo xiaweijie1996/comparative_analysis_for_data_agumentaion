@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import alg.gmm_model as gmm_piplie
+import tools.tools_gmm as tg
 
 if __name__ == '__main__':
     # Import the configuration file
@@ -19,20 +20,26 @@ if __name__ == '__main__':
     gmm = gmm_piplie.GMmodel(n_iter=config["GMM"]["n_iter"], 
                              tol=config["GMM"]["tol"], 
                              covariance_type=config["GMM"]["covariance_type"],
-                             n_component=5
+                             n_component= 6
                             )
     
     # --------------------- Data Process -----------------
-    for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
-        with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
-            _data = pickle.load(file)
-            input_length = _data['train_input'].shape[1]
-            output_length = _data['train_output'].shape[1]
+    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
+        # with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
+        #     _data = pickle.load(file)
+        #     input_length = _data['train_input'].shape[1]
+        #     output_length = _data['train_output'].shape[1]
             
         # Split the data into train, validation and test sets
-        _data = np.hstack((_data['train_input'], _data['train_output']))
+        # _data = np.hstack((_data['train_input'], _data['train_output']))
         
-        # Drop nan
+        # ---------------Data Process-----------------
+        _data_path = config["Path"][f"input_path_{_index}"]  
+        data_reshape = tg.Datareshape(_data_path)
+        _data = data_reshape.creat_new_frame()
+        _data = _data.values
+        
+        # Drop the nan
         _data = _data[~np.isnan(_data).any(axis=1)]
         
         # ----------------- Fit the GMM -----------------
@@ -48,33 +55,43 @@ if __name__ == '__main__':
             pickle.dump(fitted_gmm, file)
         
         # ----------------- Sample and Plot -----------------
-        num_sample = 1000 - config['Data_num'][_index]
+        num_sample = 978 # 1000 - config['Data_num'][_index]
         _samples, _ = fitted_gmm.sample(num_sample)
         _samples = gmm.scaler.inverse_transform(_samples)
+        print(_samples.shape)
         
         # Save sampled data as csv
         save_path = os.path.join('data_augmentation/augmented_data', f'gmm_generated_data_{_index}.csv')
-        _input_column = [f'input_{i}' for i in range(input_length)]
-        _output_column = [f'output_{i}' for i in range(output_length)]
+        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-48)]
+        _output_column = [f'output_{i}' for i in range(48)]
         _columns = _input_column + _output_column
         _frame = pd.DataFrame(_samples)
-        _frame = pd.concat([_frame, pd.DataFrame(_data)], axis=0)
+        _frame = pd.concat([_frame], axis=0)
         _frame.columns = _columns
+        print(_frame.shape)
         _frame.to_csv(save_path)
         
-        if _index == 1.0:
-            num_sample = 1000
-            _samples, _ = fitted_gmm.sample(num_sample)
-            _samples = gmm.scaler.inverse_transform(_samples)
+        # Restor the data into a dictionary
+        _data_dict = data_reshape.restor_shape(_frame)
+        
+        # Save the data into a pickle file
+        _paht = f'data_augmentation/augmented_data/{_index*100}percent_dict_gmm.pkl'
+        with open(_paht, 'wb') as _file:
+            pickle.dump(_data_dict, _file)
+        
+        # if _index == 1.0:
+        #     num_sample = 1000
+        #     _samples, _ = fitted_gmm.sample(num_sample)
+        #     _samples = gmm.scaler.inverse_transform(_samples)
             
-            # Save sampled data as csv
-            save_path = os.path.join('data_augmentation/augmented_data', f'gmm_generated_data_0.csv')
-            _input_column = [f'input_{i}' for i in range(input_length)]
-            _output_column = [f'output_{i}' for i in range(output_length)]
-            _columns = _input_column + _output_column
-            _frame = pd.DataFrame(_samples)
-            _frame.columns = _columns
-            _frame.to_csv(save_path)
+        #     # Save sampled data as csv
+        #     save_path = os.path.join('data_augmentation/augmented_data', f'gmm_generated_data_0.csv')
+        #     _input_column = [f'input_{i}' for i in range(input_length)]
+        #     _output_column = [f'output_{i}' for i in range(output_length)]
+        #     _columns = _input_column + _output_column
+        #     _frame = pd.DataFrame(_samples)
+        #     _frame.columns = _columns
+        #     _frame.to_csv(save_path)
         
         # # Plot the original data and the GMM
         # plt.figure(figsize=(10, 20))
