@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
+import gc
 import torch
 import wandb
 import yaml
@@ -31,7 +32,11 @@ if __name__ == '__main__':
     FCPflow.to(device)
     print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
         
-    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
+    for _index in [ 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05,
+        
+        torch.cuda.empty_cache()
+        gc.collect()
+
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
         data_reshape = tl.Datareshape(_data_path)
@@ -48,11 +53,12 @@ if __name__ == '__main__':
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
         
         # ----------------- Train Model -----------------
-        optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"], weight_decay=config["FCPflow"]["w_decay"])
+        optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"]) # weight_decay=config["FCPflow"]["w_decay"]
         
-        scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
-                                               base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
-                                                        cycle_momentum=False)
+        scheduler = None 
+        #torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
+        #                                       base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
+        #                                                cycle_momentum=False)
         
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
                 config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
