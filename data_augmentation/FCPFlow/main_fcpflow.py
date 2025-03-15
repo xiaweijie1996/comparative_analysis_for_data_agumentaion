@@ -35,6 +35,7 @@ if __name__ == '__main__':
     for _index in [ 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05,
         
         wandb.init() # Initialize the wandb
+        wandb.login(key='e4dfed43f8b9543d822f5c8501b98aef46a010f1')
 
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
