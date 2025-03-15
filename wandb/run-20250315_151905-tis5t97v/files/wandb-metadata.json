@@ -1,0 +1,42 @@
+{
+  "os":  "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",
+  "python":  "CPython 3.10.12",
+  "startedAt":  "2025-03-15T14:19:06.181331Z",
+  "program":  "/home/wxia/comparative_analysis_for_data_agumentaion/data_augmentation/FCPFlow/main_fcpflow.py",
+  "codePath":  "data_augmentation/FCPFlow/main_fcpflow.py",
+  "git":  {
+    "remote":  "https://github.com/xiaweijie1996/comparative_analysis_for_data_agumentaion.git",
+    "commit":  "e396055ed8d1199f0fe91492d2cb24ac6d721a4e"
+  },
+  "email":  "xiaweijie1996@gmail.com",
+  "root":  "/home/wxia/comparative_analysis_for_data_agumentaion",
+  "host":  "olgadatagpu.aling4energy.src.surf-hosted.nl",
+  "executable":  "/usr/bin/python3",
+  "codePathLocal":  "data_augmentation/FCPFlow/main_fcpflow.py",
+  "cpu_count":  11,
+  "cpu_count_logical":  11,
+  "gpu":  "NVIDIA A10",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "103865303040",
+      "used":  "25859375104"
+    }
+  },
+  "memory":  {
+    "total":  "92789145600"
+  },
+  "cpu":  {
+    "count":  11,
+    "countLogical":  11
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA A10",
+      "memoryTotal":  "24146608128",
+      "cudaCores":  9216,
+      "architecture":  "Ampere"
+    }
+  ],
+  "cudaVersion":  "12.6"
+}
