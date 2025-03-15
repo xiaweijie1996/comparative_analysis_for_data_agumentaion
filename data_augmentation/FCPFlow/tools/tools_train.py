@@ -154,6 +154,9 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
     plt.savefig(path)
     plt.close()
 
+    # Use Wandb to save the figure
+    wandb.log({"Generated Data Comparison": wandb.Image(path)})
+    
 
 
 def train(model, train_loader, optimizer, epochs, cond_dim, 

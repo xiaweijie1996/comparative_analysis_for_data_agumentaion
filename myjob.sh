@@ -2,8 +2,8 @@
 #SBATCH -J fcpflowtraining
 #SBATCH -N 1
 #SBATCH --tasks-per-node=1
-#SBATCH -t 02:00:00
-#SBATCH --partition=gpu
+#SBATCH -t 03:00:00
+#SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
 
 # 1. Load Python module

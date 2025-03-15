@@ -56,13 +56,13 @@ if __name__ == '__main__':
         optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"]) # weight_decay=config["FCPflow"]["w_decay"]
         
         scheduler = None 
-        #torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
-        #                                       base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
-        #                                                cycle_momentum=False)
+        torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
+                                              base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
+                                                       cycle_momentum=False)
         
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
                 config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
-                _index, _wandb=False, _save=True, _plot=True)
+                _index, _wandb=True, _save=True, _plot=True)
 
         print(f"Training completed successfully for index {_index}!")
 

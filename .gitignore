@@ -11,3 +11,5 @@ dsets/percentage/distributed
 __pycache__/
 *.pth
 *.pt
+
+.out
