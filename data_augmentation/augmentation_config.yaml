@@ -33,6 +33,19 @@ GMM:
   tol: 0.0001
   covariance_type: 'full'
 
+MM:
+  in_dim: 432
+  hidden_dim: 682
+  n_layers: 4
+  out_dim:  432
+
+  # Traing parameters
+  lr_rate: 0.00005
+  w_decay: 0.0
+  batch_size: 96
+  ggap: 10
+  num_epochs: 15000
+                    
 Data_num:
   0.05: 32
   0.1: 87

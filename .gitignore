@@ -6,6 +6,7 @@ data_process/.gitattributes
 __pycache__/
 sklearn-env/
 dsets/percentage/distributed
+data_augmentation/MM/
 
 # Ingore any __pycache__/
 __pycache__/
@@ -13,3 +14,5 @@ __pycache__/
 *.pt
 
 .out
+
+wandb/
