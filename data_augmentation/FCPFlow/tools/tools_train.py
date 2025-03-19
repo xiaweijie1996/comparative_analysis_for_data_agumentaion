@@ -185,7 +185,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = 100000000
+    loss_mid = -1000
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
@@ -209,6 +209,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         # ----------------- moniter loss -----------------
         if _wandb:
             wandb.log({'loss': loss.item()})
+            wandb.log({'lr': optimizer.param_groups[0]['lr']})
         # ----------------- moniter loss -----------------
             
         # ----------------- test the model -----------------

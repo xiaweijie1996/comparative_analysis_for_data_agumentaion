@@ -36,7 +36,7 @@ if __name__ == '__main__':
         
     for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05,
         
-        # wandb.init() # Initialize the wandb
+        wandb.init() # Initialize the wandb
 
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
                 config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
-                _index, _wandb=False, _save=True, _plot=True)
+                _index, _wandb=True, _save=True, _plot=True)
 
         print(f"Training completed successfully for index {_index}!")
 
