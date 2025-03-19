@@ -13,7 +13,7 @@ import pandas as pd
 import alg.models_fcpflow_lin as FCPflows
 import tools.tools_train as tl
 # import data_process.data_loader as dl
-wandb.login(key='e4dfed43f8b9543d822f5c8501b98aef46a010f1')
+# wandb.login(key='e4dfed43f8b9543d822f5c8501b98aef46a010f1')
 
 if __name__ == '__main__':
     
@@ -30,12 +30,13 @@ if __name__ == '__main__':
                             hidden_dim=config["FCPflow"]["hidden_dim"],
                             condition_dim=config["FCPflow"]["condition_dim"],
                             sfactor = config["FCPflow"]["sfactor"])
+    
     FCPflow.to(device)
     print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
         
-    for _index in [ 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05,
+    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05,
         
-        wandb.init() # Initialize the wandb
+        # wandb.init() # Initialize the wandb
 
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
@@ -55,14 +56,13 @@ if __name__ == '__main__':
         # ----------------- Train Model -----------------
         optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"]) # weight_decay=config["FCPflow"]["w_decay"]
         
-        scheduler = None 
-        torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
+        scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
                                               base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
                                                        cycle_momentum=False)
         
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
                 config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
-                _index, _wandb=True, _save=True, _plot=True)
+                _index, _wandb=False, _save=True, _plot=True)
 
         print(f"Training completed successfully for index {_index}!")
 

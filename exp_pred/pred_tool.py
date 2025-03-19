@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, MinMaxScaler 
 import matplotlib.pyplot as plt
 
-def create_data_loader(numpy_array2, batch_size=32, scaler = StandardScaler(), default_length = 765, shuffle=True):
+def create_data_loader(dict1, batch_size=32, default_length = 765, shuffle=True):
     """
     Create a DataLoader from two NumPy arrays.
 
@@ -32,24 +32,17 @@ def create_data_loader(numpy_array2, batch_size=32, scaler = StandardScaler(), d
     # sample_len = default_length - len_1 # Sample length from numpy_array1
     # numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
 
-    # Concatenate the two numpy arrays
-    numpy_array = numpy_array2
-    
-    # Scalr the data
-    numpy_array = scaler.fit_transform(numpy_array)
-    
-    # Convert the NumPy array to a PyTorch Tensor
-    tensor_data = torch.Tensor(numpy_array)
-
-    # Create a TensorDataset from the Tensor
-    dataset = TensorDataset(tensor_data)
+    # X 
+    input_data = dict1['input']
+    target_data = dict1['output']
     
     # Create a DataLoader from the Dataset
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    data_loader = DataLoader(TensorDataset(torch.Tensor(input_data), torch.Tensor(target_data)),
+                             batch_size=batch_size, shuffle=shuffle)
+    
+    return data_loader
 
-    return data_loader, scaler
-
-def train(model, train_loader, device, optimizer, split, scaler, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
+def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
     # Define the loss function
     criterion = nn.MSELoss()
     
@@ -57,12 +50,9 @@ def train(model, train_loader, device, optimizer, split, scaler, epochs=10, lr=0
     model.model.train()
     initial_loss = 1000
     for epoch in range(epochs):
-        for i, data in enumerate(train_loader):
-            # Get the data
-            _data = data[0].to(device)
-            
-            input_data = _data[:, :-split]
-            target_data = _data[:, -split:]
+        for i, (X, y) in enumerate(train_loader):
+            input_data = X.to(device)
+            target_data = y.to(device)
             
             # Predict
             output = model.model(input_data)
@@ -76,13 +66,13 @@ def train(model, train_loader, device, optimizer, split, scaler, epochs=10, lr=0
         # Compute the loss
         model.model.eval()
         with torch.no_grad():
-            _data = torch.Tensor(test_set)
-            _data = scaler.transform(_data)
-            _data = torch.Tensor(_data).to(device)
+            input_data = test_set[0]
+            input_data = torch.tensor(input_data).to(device)
+            target_data = test_set[1]
+            target_data = torch.tensor(target_data).to(device)
             
-            input_data = _data[:, :-split]
-            target_data = _data[:, -split:]
-            
+            target_data = target_data.float()
+            input_data = input_data.float()
             output = model.model(input_data)
             loss_test = criterion(output, target_data)
         
@@ -102,3 +92,14 @@ def train(model, train_loader, device, optimizer, split, scaler, epochs=10, lr=0
             plt.title('Data_augmentation_{}'.format(_index))
             plt.savefig('exp_pred/nn/saved_model/{}_pred_{}.png'.format(_model, _index))
             plt.close()
+            
+
+if __name__ == '__main__':
+    # Test the create_data_loader function
+    dict1 = {'input_data': np.random.rand(100, 100), 'output_data': np.random.rand(100, 10)}
+    train_loader, scaler = create_data_loader(dict1, batch_size=32, default_length=110)
+    print(train_loader)
+    print(scaler)
+    x, y = next(iter(train_loader))
+    print(x.size())
+    print(y.size())

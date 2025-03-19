@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import numpy as np
 import torch
 import torch.nn as nn
+import pickle
 
 class NNpredictor:
     def __init__(self, input_dim, output_dim, hidden_dim, n_layers, dropout):
@@ -104,9 +105,15 @@ if __name__ == '__main__':
     y = model.model(x)
     print(y.size())
     
+    _data_path = 'data_augmentation/augmented_data/10percent_dict.pkl'
+    pkl = pickle.load(open(_data_path, 'rb'))
+    print(pkl.keys())
+    print(pkl['train_input'].shape)
+    print(pkl['train_output'].shape)
     
     # Test the CNN predictor
-    x = torch.randn(2, 48, 8)
+    x = pkl['train_input']
+    x = torch.tensor(x).float()
 
     # Build the CNN predictor
     cnp = CNNConvpredictor(

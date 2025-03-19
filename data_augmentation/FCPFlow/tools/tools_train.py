@@ -74,7 +74,7 @@ def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), sh
     dataset = TensorDataset(tensor_data)
     
     # Create a DataLoader from the Dataset
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,  pin_memory=True, drop_last=True,)
 
     return data_loader, scaler
 
@@ -155,7 +155,7 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
     plt.close()
 
     # Use Wandb to save the figure
-    wandb.log({"Generated Data Comparison": wandb.Image(path)})
+    # wandb.log({"Generated Data Comparison": wandb.Image(path)})
     
 
 
@@ -196,10 +196,10 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             data = pre[:,:-cond_dim] 
             
             gen, logdet = model(data, cond)
-            
+ 
             # Compute the log likelihood loss
             llh = log_likelihood(gen, type='Gaussian')
-            loss = -llh.mean()-logdet
+            loss =  -llh.mean()-logdet
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -245,7 +245,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                     plot_figure(pre, re_data, scaler, cond_dim, save_path)
                 # ----------------- Plot the generated data -----------------
                 
-        # ----------------- Test the model -----------------
+        # # ----------------- Test the model -----------------
         print(epoch, 'loss LogLikelihood: ', loss.item(),'Memory Usage:', psutil.virtual_memory().percent) # , 'loss Distance: ', loss_test.item())
 
     

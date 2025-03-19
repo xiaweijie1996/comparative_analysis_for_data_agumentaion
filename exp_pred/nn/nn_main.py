@@ -21,36 +21,39 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
-    for _m in ['gmm', 'fcpflow']:
-        for _index in [0, 0.1, 0.3, 0.5, 0.8, 1.0]:
-            # Load augmented data
-            datapath = 'data_augmentation/augmented_data/{}_generated_data_{}.csv'.format(_m, _index)
-            # Load the data without first column
-            aug_data = pd.read_csv(datapath, index_col=0).values
+    for _m in ['gmm', 'flow', 'DoppelGANger']:
+        for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
+            if _m == 'DoppelGANger':
+                _path = f'data_augmentation/augmented_data/f{int(_index)}percent_dict.pkl'
+            elif _m == 'gmm':
+                _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_gmm.pkl'
+            elif _m == 'flow':
+                _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_model.pkl'
+           
+            # Load the data from the path
+            with open(_path, 'rb') as f:
+                aug_data = pickle.load(f)
+                print(aug_data.keys())
             
-            # # Load real data
-            # real_data_train_path = f'original_data_split/data_dict_{_index}.pickle'
-            # with open(real_data_train_path, 'rb') as f:
-            #     real_data_train = pickle.load(f)
-            #     real_data_train = np.hstack((real_data_train['train_input'], real_data_train['train_output']))
+            train_loader = pt.create_data_loader(aug_data, 
+                                                batch_size=pre_config['NN']['batch_size'], 
+                                                default_length=pre_config['NN']['default_length'],
+                                                shuffle=True)
             
-            real_data_path = f'original_data_split/data_dict.pickle'
-            with open(real_data_path, 'rb') as f:
-                real_data = pickle.load(f)
-                real_data_test = np.hstack((real_data['test_input'], real_data['test_output']))
-                real_data_val = np.hstack((real_data['val_input'], real_data['val_output']))
-            
-            train_loader, scaler = pt.create_data_loader(aug_data, 
-                                                         batch_size=pre_config['NN']['batch_size'], 
-                                                         default_length=pre_config['NN']['default_length'],
-                                                         shuffle=True)
-            
+            # Load test data
+            with open('dsets/test_set_wind_processed.pkl', 'rb') as f:
+                real_data_test = pickle.load(f)
+                
+            real_data_test = (real_data_test['input'], real_data_test['output'])
+
             # ---------- Load the model -----------------
-            predictor = al.NNpredictor(input_dim=pre_config['NN']['input_dim'], 
-                                       output_dim=pre_config['NN']['output_dim'], 
-                                       hidden_dim=pre_config['NN']['hidden_dim'], 
-                                       n_layers=pre_config['NN']['n_layers'], 
-                                       dropout=pre_config['NN']['dropout'])
+            predictor = al.CNNConvpredictor(
+                    in_channels=pre_config['NN']['in_channels'],
+                    hidden_channels=pre_config['NN']['hidden_channels'],
+                    out_channels=pre_config['NN']['out_channels'],
+                    kernel_size=pre_config['NN']['kernel_size'],
+                    dropout=pre_config['NN']['dropout']
+                )
             
             print('Number of parameters: {}'.format(sum(p.numel() for p in predictor.model.parameters())))
             
@@ -60,7 +63,7 @@ if __name__ == '__main__':
             optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'])
             
             pt.train(predictor, train_loader, device, optimizer, 
-                     pre_config['NN']['split'], scaler, epochs=pre_config['NN']['epochs'], 
+                     epochs=pre_config['NN']['epochs'], 
                      lr=pre_config['NN']['lr'], _model=_m, _index=_index,
                      test_set=real_data_test)
             
@@ -68,16 +71,29 @@ if __name__ == '__main__':
             predictor.model.eval()
 
             # Make prediction
-            scaled_val_data = scaler.transform(real_data_val)
-            scaled_val_data = torch.Tensor(scaled_val_data).to(device)
-            input_data = scaled_val_data[:, :-pre_config['NN']['split']]
-            target_data = scaled_val_data[:, -pre_config['NN']['split']]
+            input_data = real_data_test[0]
+            input_data = torch.tensor(input_data).to(device)
+            target_data = real_data_test[1]
+            target_data = torch.tensor(target_data).to(device)
+            
+            target_data = target_data.float()
+            input_data = input_data.float()
             output = predictor.model(input_data)
-            pre_data = np.hstack((input_data.cpu(), output.cpu().detach().numpy()))
-            pre_data = scaler.inverse_transform(pre_data)
+            output = output.cpu().detach().numpy()
             
             # Save the prediction
             save_pred_path = f'exp_pred/pred_results/{_m}_pred_results_{_index}.pickle'
             with open(save_pred_path, 'wb') as f:
-                pickle.dump(pre_data, f)
+                pickle.dump(output, f)
+                
+            # Plot the prediction and save the figure
+            import matplotlib.pyplot as plt
+            # plOIT 10 subplots
+            fig, axs = plt.subplots(10, 1, figsize=(10, 20))
+            for i in range(10):
+                axs[i].plot(target_data[i*4].cpu().detach().numpy().flatten(), label='target')
+                axs[i].plot(output[i*4].flatten(), label='output')
+                axs[i].legend()
+                axs[i].set_title(f'Data_augmentation_{_index}')
+            plt.savefig(f'exp_pred/pred_results/plots/{_m}_pred_results_{_index}.png')
         

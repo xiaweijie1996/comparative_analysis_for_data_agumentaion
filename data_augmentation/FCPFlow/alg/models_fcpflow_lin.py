@@ -24,6 +24,9 @@ class InvertibleNorm(nn.Module):
             
             self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean # update running mean
             self.running_std = (1 - self.momentum) * self.running_std + self.momentum * std # update running std dev
+            # self.running_mean.mul_(1 - self.momentum).add_(self.momentum * mean)
+            # self.running_std.mul_(1 - self.momentum).add_(self.momentum * std)
+
         
             # log-determinant of the Jacobian)
             self.scale = 1 / (std)
@@ -296,6 +299,47 @@ class FCPflow(nn.Module): # Fully convolutional time flow
         return y
 
 
+
+
+class MM(nn.Module):
+    def __init__(self, in_dim, hidden_dim, n_layers, out_dim):
+        super(MM, self).__init__()
+        self.in_dim = in_dim
+        self.hidden_dim = hidden_dim
+        self.n_layers = n_layers
+        self.out_dim = out_dim
+        self._definenetwork()
+        
+    def _definenetwork(self):
+        # Define the base network
+        input_model = nn.Sequential(
+            nn.Linear(self.in_dim, self.hidden_dim),
+            nn.BatchNorm1d(self.hidden_dim),
+            nn.LeakyReLU()
+        )
+        
+        output_model = nn.Sequential(
+            nn.Linear(self.hidden_dim, self.out_dim),
+            nn.Tanh()
+        )
+        
+        middle_model = nn.Sequential(
+            nn.Linear(self.hidden_dim, self.hidden_dim),
+            nn.BatchNorm1d(self.hidden_dim),
+            nn.LeakyReLU()
+        )
+        
+        # Repeat the middle model n_layers times
+        middle_layers = [middle_model for i in range(self.n_layers)]
+        middle_layers = nn.Sequential(*middle_layers)
+        
+        self.model = nn.Sequential(input_model, middle_layers, output_model)
+        
+    def forward(self, x):
+        return self.model(x)
+    
+    
+    
 if __name__ == '__main__':
     # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
