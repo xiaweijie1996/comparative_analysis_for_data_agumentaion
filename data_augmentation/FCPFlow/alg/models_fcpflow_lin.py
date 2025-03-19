@@ -12,6 +12,7 @@ class InvertibleNorm(nn.Module):
         # Initialize running_mean and running_std as buffers to be part of the model's state
         self.register_buffer('running_mean', torch.zeros(1, num_channels, 1))
         self.register_buffer('running_std', torch.ones(1, num_channels, 1))
+    
         self.momentum = 0.1
         
     def forward(self, input):
@@ -22,12 +23,10 @@ class InvertibleNorm(nn.Module):
             # Normalize input using calculated mean and std dev
             normalized_input = (input - mean) / (std)
             
-            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean # update running mean
-            self.running_std = (1 - self.momentum) * self.running_std + self.momentum * std # update running std dev
-            # self.running_mean.mul_(1 - self.momentum).add_(self.momentum * mean)
-            # self.running_std.mul_(1 - self.momentum).add_(self.momentum * std)
-
-        
+            with torch.no_grad():
+                self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean # update running mean
+                self.running_std = (1 - self.momentum) * self.running_std + self.momentum * std # update running std dev
+            
             # log-determinant of the Jacobian)
             self.scale = 1 / (std)
             log_det = (
@@ -343,15 +342,23 @@ class MM(nn.Module):
 if __name__ == '__main__':
     # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
+    import psutil
     # Check the model
-    model = FCPflow(8, 48, 0.3, 48, 48).to(device)  
-    model.eval()
-    x = torch.randn(604, 48).to(device)
-
-    condition = torch.randn(604, 48).to(device)
-    y, log_det = model(x, condition)
-    x_re = model.inverse(y, condition)
-    print('x: ', x.shape)
-    print('y: ', y.shape)
-    print('difference: ', torch.norm(x - x_re))
+    model = FCPflow(2, 48, 0.3, 48, 48).to(device)  
+    # model = nn.ModuleList([FCPflowblock(48, 0.3, 48, 48) for _ in range(2)]).to(device)
+    # model = ConditionalAffineCouplingLayer(0.3, 48, 48, 48, 48).to(device)
+    # model = InvertibleWConv(48).to(device)
+    # model = FCPflowblock(48, 0.3, 48, 48).to(device)
+    model.train()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    print('Number of parameters: ', sum(p.numel() for p in model.parameters()))
+    while True:
+        x = torch.randn(604, 48).to(device)
+        condition = torch.randn(604, 48).to(device)
+        y, log_det = model(x, condition)
+        x_re = model.inverse(y, condition)
+        loss = -y.mean()-log_det
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        print(loss.item(),'Memory Usage:', psutil.virtual_memory().percent) # , 'loss Distance: ', loss_test.item())
