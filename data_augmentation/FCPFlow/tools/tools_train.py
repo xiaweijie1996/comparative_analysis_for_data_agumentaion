@@ -18,7 +18,7 @@ torch.set_default_dtype(torch.float64)
 class Datareshape():
     def __init__(self, data_path):
         self.dataframe = pd.read_csv(data_path, index_col=0)
-        self.length = self.dataframe.shape[0]
+        self.length = int(self.dataframe.shape[0]/48)
         self.width = self.dataframe.shape[1]
         self.add_month_hour()
         
@@ -40,10 +40,9 @@ class Datareshape():
 >>>>>>> origin
     
     def creat_new_frame(self):
-        _num_step = 48
         new_frame = pd.DataFrame()
-        for i in range(self.length-_num_step):
-            _data = self.dataframe.iloc[i:i+_num_step, :]
+        for i in range(self.length):
+            _data = self.dataframe.iloc[i*48:(i+1)*48, :]
             _data = _data.values
             _x = _data[:, :-1].reshape(1, -1)
             _y = _data[:, -1:].reshape(1, -1)
@@ -81,7 +80,7 @@ def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), sh
     dataset = TensorDataset(tensor_data)
     
     # Create a DataLoader from the Dataset
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,  pin_memory=True, drop_last=True,)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,  pin_memory=True, drop_last=False)
 
     return data_loader, scaler
 
@@ -192,7 +191,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -1000
+    loss_mid = -3800
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
@@ -207,6 +206,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             # Compute the log likelihood loss
             llh = log_likelihood(gen, type='Gaussian')
             loss =  -llh.mean()-logdet
+            print(loss)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
