@@ -34,10 +34,7 @@ class Datareshape():
         cols = cols[:-3] + cols[-2:] + cols[-3:-2]
         self.dataframe = self.dataframe[cols]
         
-<<<<<<< HEAD
-=======
         
->>>>>>> origin
     
     def creat_new_frame(self):
         new_frame = pd.DataFrame()
@@ -49,19 +46,6 @@ class Datareshape():
             _data = np.hstack((_x, _y))
             new_frame = pd.concat([new_frame, pd.DataFrame(_data)], axis=0)
         return new_frame
-<<<<<<< HEAD
-    
-    def restor_shape(self, data):
-        data = data.values
-        length = data.shape[0]
-        input_x = data[:, :-48].reshape(length, 48, 8)
-        ouput_y = data[:, -48:].reshape(length, 48, 1)
-        
-        dic = {'input': input_x, 'output': ouput_y}
-        return dic
-    
-=======
->>>>>>> origin
         
 
 def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), shuffle=True):
@@ -270,8 +254,4 @@ if __name__ == "__main__":
     data = new_frame.values
     loader, scaler = create_data_loader(data, batch_size=32)
     _data = next(iter(loader))[0]
-<<<<<<< HEAD
     print(_data.shape)
-=======
-    print(_data.shape)
->>>>>>> origin
