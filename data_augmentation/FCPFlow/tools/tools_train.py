@@ -73,7 +73,7 @@ def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), sh
     dataset = TensorDataset(tensor_data)
     
     # Create a DataLoader from the Dataset
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,  pin_memory=True, drop_last=True,)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,  pin_memory=True, drop_last=False)
 
     return data_loader, scaler
 
@@ -184,13 +184,12 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -1400
+    loss_mid = -3800
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
             pre = data[0].to(device) 
             
-            print(pre.shape)
             # Split the data into data and conditions
             cond = pre[:,-cond_dim:]
             data = pre[:,:-cond_dim] 
@@ -209,7 +208,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             
         # ----------------- moniter loss -----------------
         if _wandb:
-            # wandb.log({'loss': loss.item()})
+            wandb.log({'loss': loss.item()})
             wandb.log({'lr': optimizer.param_groups[0]['lr']})
         # ----------------- moniter loss -----------------
             
