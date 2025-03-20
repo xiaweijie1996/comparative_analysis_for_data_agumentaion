@@ -34,7 +34,6 @@ class Datareshape():
         cols = cols[:-3] + cols[-2:] + cols[-3:-2]
         self.dataframe = self.dataframe[cols]
         
-        
     
     def creat_new_frame(self):
         _num_step = 48

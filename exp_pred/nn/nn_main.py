@@ -7,6 +7,7 @@ import pandas as pd
 import yaml
 import pickle
 import numpy as np
+import wandb
 
 import alg as al
 import exp_pred.pred_tool as pt
@@ -21,21 +22,25 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
-    for _m in ['gmm', 'flow', 'DoppelGANger']:
-        for _index in [0.1, 0.3, 0.5, 0.8, 1.0]:
+    for _m in ['DoppelGANger', 'gmm', 'flow']:
+        for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
             if _m == 'DoppelGANger':
-                _path = f'data_augmentation/augmented_data/f{int(_index)}percent_dict.pkl'
+                _path = f'data_augmentation/augmented_data/{int(_index*100)}percent_dict.pkl'
             elif _m == 'gmm':
                 _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_gmm.pkl'
             elif _m == 'flow':
                 _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_model.pkl'
            
+            # Initialize the wandb
+            wandb.init(project='wind_prediction')
+            
             # Load the data from the path
             with open(_path, 'rb') as f:
                 aug_data = pickle.load(f)
-                print(aug_data.keys())
+                keys = list(aug_data.keys())
+                print(keys)
             
-            train_loader = pt.create_data_loader(aug_data, 
+            train_loader = pt.create_data_loader(aug_data, keys, 
                                                 batch_size=pre_config['NN']['batch_size'], 
                                                 default_length=pre_config['NN']['default_length'],
                                                 shuffle=True)
@@ -56,6 +61,7 @@ if __name__ == '__main__':
                 )
             
             print('Number of parameters: {}'.format(sum(p.numel() for p in predictor.model.parameters())))
+            
             
             predictor.model.to(device)
 

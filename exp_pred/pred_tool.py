@@ -5,12 +5,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import pandas as pd
 import numpy as np
 import torch
+import wandb
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, MinMaxScaler 
 import matplotlib.pyplot as plt
 
-def create_data_loader(dict1, batch_size=32, default_length = 765, shuffle=True):
+def create_data_loader(dict1, keys, batch_size=32, default_length = 765, shuffle=True):
     """
     Create a DataLoader from two NumPy arrays.
 
@@ -33,8 +34,8 @@ def create_data_loader(dict1, batch_size=32, default_length = 765, shuffle=True)
     # numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
 
     # X 
-    input_data = dict1['input']
-    target_data = dict1['output']
+    input_data = dict1[keys[0]]
+    target_data = dict1[keys[1]]
     
     # Create a DataLoader from the Dataset
     data_loader = DataLoader(TensorDataset(torch.Tensor(input_data), torch.Tensor(target_data)),
@@ -77,7 +78,9 @@ def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='
             loss_test = criterion(output, target_data)
         
         print('Epoch: {}, Loss in test: {}, Loss in train: {}'.format(epoch, loss_test.item(), loss.item()))
-           
+        
+        wandb.log({'Loss in test': loss_test.item(), 'Loss in train': loss.item()})
+        
         # Save the model if the loss is less than the initial loss
         if loss.item() < initial_loss:
             initial_loss = loss.item()
