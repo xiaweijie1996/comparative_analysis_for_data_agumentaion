@@ -22,7 +22,7 @@ FCPflow:
   w_decay: 0.0
   batch_size: 960
   ggap: 10
-  num_epochs: 17000
+  num_epochs: 15000
 
   # Whether to save the model and configuration
   figure_save: True

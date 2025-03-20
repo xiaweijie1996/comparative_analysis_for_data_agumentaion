@@ -184,12 +184,13 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -1310
+    loss_mid = -1400
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
             pre = data[0].to(device) 
             
+            print(pre.shape)
             # Split the data into data and conditions
             cond = pre[:,-cond_dim:]
             data = pre[:,:-cond_dim] 
@@ -199,6 +200,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             # Compute the log likelihood loss
             llh = log_likelihood(gen, type='Gaussian')
             loss =  -llh.mean()-logdet
+            print(loss)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -207,7 +209,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             
         # ----------------- moniter loss -----------------
         if _wandb:
-            wandb.log({'loss': loss.item()})
+            # wandb.log({'loss': loss.item()})
             wandb.log({'lr': optimizer.param_groups[0]['lr']})
         # ----------------- moniter loss -----------------
             
