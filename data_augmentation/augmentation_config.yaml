@@ -9,9 +9,9 @@ Path:
 
 FCPflow:
   # Model parameters
-  num_blocks:  3 # number of blocks in the model
+  num_blocks:  4 # number of blocks in the model
   num_channels: 432 # resolution of the time series 
-  hidden_dim: 120 # dimension of the hidden layers
+  hidden_dim: 160 # dimension of the hidden layers
   condition_dim: 1 # dimension of the condition vector, large than 1
   sfactor: 0.7
 
@@ -22,7 +22,7 @@ FCPflow:
   w_decay: 0.0
   batch_size: 1060
   ggap: 10
-  num_epochs: 500000
+  num_epochs: 250000
 
   # Whether to save the model and configuration
   figure_save: True

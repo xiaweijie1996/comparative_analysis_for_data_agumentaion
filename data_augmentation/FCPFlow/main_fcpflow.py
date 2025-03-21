@@ -34,10 +34,18 @@ if __name__ == '__main__':
     FCPflow.to(device)
     print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
         
-    for _index in [0.3, 0.5, 0.8, 1.0]: # 0.05, 0.05, 0.1, 
+    optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"]) # weight_decay=config["FCPflow"]["w_decay"]
+    
+    scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
+                                            base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
+                                                       cycle_momentum=False)
+
+    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05, 0.05, 0.1, 
         
         wandb.init(project="fcpflow", name=f"FCPflow_{_index*100}percent", reinit=True)
-
+        # log the number of parameters
+        wandb.config.update({"num_parameters": sum(p.numel() for p in FCPflow.parameters())})
+        
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
         data_reshape = tl.Datareshape(_data_path)
@@ -54,12 +62,6 @@ if __name__ == '__main__':
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
         
         # ----------------- Train Model -----------------
-        optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"]) # weight_decay=config["FCPflow"]["w_decay"]
-        
-        scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
-                                              base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
-                                                       cycle_momentum=False)
-        
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
                 config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
                 _index, _wandb=True, _save=True, _plot=True)
