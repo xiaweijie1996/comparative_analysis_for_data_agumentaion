@@ -18,7 +18,7 @@ torch.set_default_dtype(torch.float64)
 class Datareshape():
     def __init__(self, data_path):
         self.dataframe = pd.read_csv(data_path, index_col=0)
-        self.length = self.dataframe.shape[0]
+        self.length = int(self.dataframe.shape[0]/48)
         self.width = self.dataframe.shape[1]
         self.add_month_hour()
         
@@ -33,13 +33,11 @@ class Datareshape():
         cols = list(self.dataframe.columns)
         cols = cols[:-3] + cols[-2:] + cols[-3:-2]
         self.dataframe = self.dataframe[cols]
-        
     
     def creat_new_frame(self):
-        _num_step = 48
         new_frame = pd.DataFrame()
-        for i in range(self.length-_num_step):
-            _data = self.dataframe.iloc[i:i+_num_step, :]
+        for i in range(self.length):
+            _data = self.dataframe.iloc[i*48:(i+1)*48, :]
             _data = _data.values
             _x = _data[:, :-1].reshape(1, -1)
             _y = _data[:, -1:].reshape(1, -1)
@@ -47,15 +45,17 @@ class Datareshape():
             new_frame = pd.concat([new_frame, pd.DataFrame(_data)], axis=0)
         return new_frame
     
-    def restor_shape(self, data):
-        data = data.values
+    def restor_shape(self, frame):
+        _data_dict = {}
+        data = frame.values
         length = data.shape[0]
         input_x = data[:, :-48].reshape(length, 48, 8)
         ouput_y = data[:, -48:].reshape(length, 48, 1)
         
-        dic = {'input': input_x, 'output': ouput_y}
-        return dic
-
+        _data_dict['input'] = input_x
+        _data_dict['output'] = ouput_y
+        
+        return _data_dict
 if __name__ == "__main__":
     
     # Test the Datareshape class

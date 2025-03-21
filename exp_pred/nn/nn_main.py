@@ -22,7 +22,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
-    for _m in ['DoppelGANger', 'gmm', 'flow']:
+    for _m in ['DoppelGANger', 'gmm', 'flow', 'copula']:
         for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
             if _m == 'DoppelGANger':
                 _path = f'data_augmentation/augmented_data/{int(_index*100)}percent_dict.pkl'
@@ -30,6 +30,8 @@ if __name__ == '__main__':
                 _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_gmm.pkl'
             elif _m == 'flow':
                 _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_model.pkl'
+            elif _m == 'copula':
+                _path = f'data_augmentation/augmented_data/{_index*100}percent_dict_copula.pkl'
            
             # Initialize the wandb
             wandb.init(project='wind_prediction')
@@ -88,7 +90,7 @@ if __name__ == '__main__':
             output = output.cpu().detach().numpy()
             
             # Save the prediction
-            save_pred_path = f'exp_pred/pred_results/{_m}_pred_results_{_index}.pickle'
+            save_pred_path = f'exp_pred/pred_results/NN_{_m}_pred_results_{_index}.pickle'
             with open(save_pred_path, 'wb') as f:
                 pickle.dump(output, f)
                 
@@ -101,5 +103,5 @@ if __name__ == '__main__':
                 axs[i].plot(output[i*4].flatten(), label='output')
                 axs[i].legend()
                 axs[i].set_title(f'Data_augmentation_{_index}')
-            plt.savefig(f'exp_pred/pred_results/plots/{_m}_pred_results_{_index}.png')
+            plt.savefig(f'exp_pred/pred_results/plots/NN_{_m}_pred_results_{_index}.png')
         

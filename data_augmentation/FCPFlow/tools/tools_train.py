@@ -33,8 +33,6 @@ class Datareshape():
         cols = list(self.dataframe.columns)
         cols = cols[:-3] + cols[-2:] + cols[-3:-2]
         self.dataframe = self.dataframe[cols]
-        
-        
     
     def creat_new_frame(self):
         new_frame = pd.DataFrame()
@@ -208,7 +206,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             loss =  -llh.mean()-logdet
             optimizer.zero_grad()
             loss.backward()
-            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Use norm-based clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Use norm-based clipping
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()

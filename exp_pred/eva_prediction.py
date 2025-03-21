@@ -10,7 +10,7 @@ def rmse_loss(pred, real):
     return np.sqrt(mse_loss(pred, real))    
 
 if __name__ == "__main__":
-    models = ['DoppelGANger','gmm', 'flow']
+    models = ['DoppelGANger','gmm', 'flow', 'copula']
     indexes = [0.05, 0.1, 0.3, 0.5, 0.8, 1.0] #0.05,
 
     real_data_test_path = 'dsets/test_set_wind_processed.pkl'
