@@ -46,6 +46,18 @@ class Datareshape():
             _data = np.hstack((_x, _y))
             new_frame = pd.concat([new_frame, pd.DataFrame(_data)], axis=0)
         return new_frame
+    
+    def restor_shape(self, frame):
+        _data_dict = {}
+        data = frame.values
+        length = data.shape[0]
+        input_x = data[:, :-48].reshape(length, 48, 8)
+        ouput_y = data[:, -48:].reshape(length, 48, 1)
+        
+        _data_dict['input'] = input_x
+        _data_dict['output'] = ouput_y
+        
+        return _data_dict
         
 
 def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), shuffle=True):
@@ -86,8 +98,12 @@ def log_likelihood(x, type='Gaussian'):
 def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.png'):
     # Inverse transform to get the original scale of the data
     orig_data_pre = scaler.inverse_transform(pre.cpu().detach().numpy())
+    
     orig_data_re = scaler.inverse_transform(re_data.cpu().detach().numpy())
     
+    # For value < 0 , set 0
+    orig_data_pre[orig_data_pre < 0] = 0
+    orig_data_pre[orig_data_pre > 600] = 600
     cmap = plt.get_cmap('RdBu_r')
     fig, axs = plt.subplots(4, 1, figsize=(10, 20))  # TFour rows for comparison
     
@@ -175,7 +191,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -3800
+    loss_mid = -3500
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
@@ -190,9 +206,9 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             # Compute the log likelihood loss
             llh = log_likelihood(gen, type='Gaussian')
             loss =  -llh.mean()-logdet
-            print(loss)
             optimizer.zero_grad()
             loss.backward()
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Use norm-based clipping
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()

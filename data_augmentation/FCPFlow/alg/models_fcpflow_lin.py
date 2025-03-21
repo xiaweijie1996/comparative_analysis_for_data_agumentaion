@@ -88,9 +88,9 @@ class Simple1DfullConvNet(nn.Module):
             nn.BatchNorm1d(self.h_c),
             nn.LeakyReLU(),
             
-            nn.Linear(in_features=self.h_c, out_features=self.h_c, bias=self.bias),
-            nn.BatchNorm1d(self.h_c),
-            nn.LeakyReLU(),
+            # nn.Linear(in_features=self.h_c, out_features=self.h_c, bias=self.bias),
+            # nn.BatchNorm1d(self.h_c),
+            # nn.LeakyReLU(),
             
             nn.Linear(in_features=self.h_c, out_features=self.h_c, bias=self.bias),
             nn.BatchNorm1d(self.h_c),
@@ -118,6 +118,54 @@ class Simple1DfullConvNet(nn.Module):
                 x = x.view(x.shape[0], -1)
                 x = self.linear_model(x)
                 return x
+
+
+# class Simple1DfullConvNet(nn.Module):
+#     def __init__(self, in_c, h_c, out_c, linear = False):
+#         super().__init__()
+#         self.in_c = in_c
+#         self.h_c = h_c
+#         self.out_c = out_c
+#         self.linear = linear
+#         self.bias = False
+#         self.model = nn.Sequential( 
+#             # 1D convolution
+#             nn.Conv1d(in_channels=1, out_channels=self.h_c, kernel_size=3, stride=1, padding=1),
+#             nn.BatchNorm1d(self.h_c),
+#             nn.LeakyReLU(),
+            
+#             # 1D convolution
+#             nn.Conv1d(in_channels=self.h_c, out_channels=self.h_c, kernel_size=3, stride=1, padding=1),
+#             nn.BatchNorm1d(self.h_c),
+#             nn.LeakyReLU(),
+            
+#             # 1D convolution
+#             nn.Conv1d(in_channels=self.h_c, out_channels=1, kernel_size=3, stride=1, padding=1),
+#             nn.BatchNorm1d(1),
+#             nn.LeakyReLU(),
+#         )
+        
+#         self.linear_model = nn.Linear(self.in_c, self.out_c)
+        
+#     def forward(self, x):
+
+#         if not self.linear:
+#                 # x = x.reshape(x.shape[0], self.in_c, 1)
+#                 x = x.unsqueeze(1)
+#                 x = self.model(x)
+#                 x = x.squeeze(1)
+#                 x = x.view(x.shape[0], -1)
+#                 x = self.linear_model(x)
+#                 x = self.leakrelu(x)
+#                 return x
+#         else:
+#                 # x = x.reshape(x.shape[0], self.in_c, 1)
+#                 x = x.unsqueeze(1)
+#                 x = self.model(x)
+#                 x = x.squeeze(1)
+#                 x = x.view(x.shape[0], -1)
+#                 x = self.linear_model(x)
+#                 return x
 
 class ConditionalAffineCouplingLayer(nn.Module):
     def __init__(self, sfactor, input_dim, hidden_dim, condition_dim, output_dim):

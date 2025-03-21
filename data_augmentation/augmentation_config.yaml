@@ -20,9 +20,9 @@ FCPflow:
   lr_max: 0.0005
   lr_step_size: 20
   w_decay: 0.0
-  batch_size: 256
+  batch_size: 96
   ggap: 10
-  num_epochs: 15000
+  num_epochs: 200000
 
   # Whether to save the model and configuration
   figure_save: True
@@ -42,7 +42,7 @@ MM:
   # Traing parameters
   lr_rate: 0.00005
   w_decay: 0.0
-  batch_size: 96
+  batch_size: 960
   ggap: 10
   num_epochs: 1
                     
