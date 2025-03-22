@@ -3,7 +3,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 # select_list
-select_list = [1.0]
+select_list = [0.1]
 
 
 # Load the data
@@ -36,19 +36,19 @@ for i in select_list:
     plt.close()
     break
 
-# for i in select_list:
-#     _paht = f'data_augmentation/augmented_data/{i*100}percent_dict_fcpflow.pkl'
-#     with open(_paht, 'rb') as _file:
-#         _data = pickle.load(_file)
+for i in select_list:
+    _paht = f'data_augmentation/augmented_data/{i*100}percent_dict_fcpflow.pkl'
+    with open(_paht, 'rb') as _file:
+        _data = pickle.load(_file)
     
-#     # PLot the data into one plot
-#     y = _data['output']
-#     y = y.reshape(978, -1)
-#     for i in y:
-#         plt.plot(i, c='b', alpha=0.1)
-#     plt.savefig(f'data_augmentation/augmented_data/percent_dict_fcpflow.png')
-#     plt.close()
-#     break
+    # PLot the data into one plot
+    y = _data['output']
+    y = y.reshape(978, -1)
+    for i in y:
+        plt.plot(i, c='b', alpha=0.1)
+    plt.savefig(f'data_augmentation/augmented_data/percent_dict_fcpflow.png')
+    plt.close()
+    break
 
 
 for i in select_list:
