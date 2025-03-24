@@ -232,7 +232,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             
         # Save the model
         if _save:
-            if loss_test.item() < loss_mid and epoch >= 200000:
+            if loss_test.item() < loss_mid and epoch >= 400000:
                 print('save the model')
                 save_path = os.path.join('data_augmentation/FCPFlow/saved_model', f'FCPflow_model_{index}.pth')
                 torch.save(model.state_dict(), save_path)

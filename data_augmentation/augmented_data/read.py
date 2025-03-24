@@ -3,7 +3,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 # select_list
-select_list = [0.1]
+select_list = [0.3]
 
 
 # Load the data
