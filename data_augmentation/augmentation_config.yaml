@@ -20,7 +20,7 @@ FCPflow:
   lr_max: 0.0005
   lr_step_size: 200
   w_decay: 0.0
-  batch_size: 1060
+  batch_size: 48
   ggap: 10
   num_epochs: 50000
 

@@ -57,7 +57,7 @@ if __name__ == '__main__':
         _data = torch.tensor(_data, dtype=torch.float32)
         _zeros = torch.zeros(_data.shape[0], 1)
         _data = torch.cat((_data, _zeros), dim=1)
-        
+        print(_data.shape)
         # Define the data loader
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
         
