@@ -22,7 +22,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
-    for _m in ['DoppelGANger', 'gmm', 'flow', 'copula']:
+    for _m in ['DoppelGANger', 'gmm', 'copula', 'flow']:
         for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
             if _m == 'DoppelGANger':
                 _path = f'data_augmentation/augmented_data/{int(_index*100)}percent_dict.pkl'

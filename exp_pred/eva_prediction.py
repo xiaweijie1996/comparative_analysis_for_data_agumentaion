@@ -14,7 +14,7 @@ def mae_loss(pred, real):
 
 if __name__ == "__main__":
     gen_models = ['DoppelGANger','gmm', 'copula', 'flow']
-    pre_models = ['SVR', 'NN']
+    pre_models = ['NN']
     indexes = [0.05, 0.1, 0.3, 0.5, 0.8, 1.0] #0.05,
 
     real_data_test_path = 'dsets/test_set_wind_processed.pkl'
