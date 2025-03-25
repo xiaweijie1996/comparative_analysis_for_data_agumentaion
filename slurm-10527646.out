@@ -1,0 +1,32 @@
+***************************************************************************************************** 
+* WARNING: The 2022 software stack is deprecated. Please consider switching to
+the latest 2024 * 
+* software stack, or the older 2023 software stack. * 
+* * 
+* If you have any question, please contact us via
+http://servicedesk.surfsara.nl. * 
+***************************************************************************************************** 
+Number of parameters:  1829664
+Traceback (most recent call last):
+  File "/gpfs/home4/wxia/coopwitholga/comparative_analysis_for_data_agumentaion/data_augmentation/FCPFlow/main_fcpflow.py", line 63, in <module>
+    tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
+  File "/gpfs/home4/wxia/coopwitholga/comparative_analysis_for_data_agumentaion/data_augmentation/FCPFlow/tools/tools_train.py", line 211, in train
+    wandb.log({'loss': loss.item()})
+  File "/gpfs/home4/wxia/coopwitholga/lib/python3.12/site-packages/wandb/sdk/lib/preinit.py", line 36, in preinit_wrapper
+    raise wandb.Error(f"You must call wandb.init() before {name}()")
+wandb.errors.errors.Error: You must call wandb.init() before wandb.log()
+
+JOB STATISTICS
+==============
+Job ID: 10527646
+Cluster: snellius
+User/Group: wxia/wxia
+State: RUNNING
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 00:09:36 core-walltime
+Job Wall-clock time: 00:00:32
+Memory Utilized: 0.00 MB (estimated maximum)
+Memory Efficiency: 0.00% of 120.00 GB (120.00 GB/node)
+WARNING: Efficiency statistics may be misleading for RUNNING jobs.
