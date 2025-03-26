@@ -22,7 +22,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
-    for _m in ['DoppelGANger', 'gmm', 'flow', 'copula']:
+    for _m in ['DoppelGANger', 'gmm', 'copula',  'flow']: 
         for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
             if _m == 'DoppelGANger':
                 _path = f'data_augmentation/augmented_data/{int(_index*100)}percent_dict.pkl'
@@ -75,6 +75,9 @@ if __name__ == '__main__':
                      lr=pre_config['NN']['lr'], _model=_m, _index=_index,
                      test_set=real_data_test)
             
+            # Load the best model
+            predictor.model.load_state_dict(torch.load(f'exp_pred/nn/saved_model/{_m}_model_{_index}.pt'))
+            
             # ---------- Test the model -----------------
             predictor.model.eval()
 
@@ -89,7 +92,7 @@ if __name__ == '__main__':
             output = predictor.model(input_data)
             output = output.cpu().detach().numpy()
             
-            # Save the prediction
+            # Save the prediction exp_pred//DoppelGANger_model_0.05.pt
             save_pred_path = f'exp_pred/pred_results/NN_{_m}_pred_results_{_index}.pickle'
             with open(save_pred_path, 'wb') as f:
                 pickle.dump(output, f)

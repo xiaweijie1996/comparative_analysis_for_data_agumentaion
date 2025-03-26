@@ -39,11 +39,11 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
                                             base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
                                                        cycle_momentum=False)
-    # # Load saved model
-    # _path = 'data_augmentation/FCPFlow/saved_model/FCPflow_model_0.5.pth'
-    # FCPflow.load_state_dict(torch.load(_path))
+    # Load saved model
+    _path = 'data_augmentation/FCPFlow/saved_model/FCPflow_model_1.0.pth'
+    FCPflow.load_state_dict(torch.load(_path))
     
-    for _index in [0.8, 1.0]: # 0.05, 0.05, 0.1,  0.5, 
+    for _index in [0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05, 0.05, 0.1,  0.5, 
         
         wandb.init(project="fcpflow", name=f"FCPflow_{_index*100}percent", reinit=True)
         # log the number of parameters
@@ -73,9 +73,9 @@ if __name__ == '__main__':
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
         
         # ----------------- Train Model -----------------
-        tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
-                config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
-                _index, _wandb=True, _save=True, _plot=True)
+        # tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
+        #         config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
+        #         _index, _wandb=True, _save=True, _plot=True)
 
         print(f"Training completed successfully for index {_index}!")
 

@@ -2,7 +2,7 @@
 #SBATCH -J fcpflowtraining
 #SBATCH -N 1
 #SBATCH --tasks-per-node=1
-#SBATCH -t 03:00:00
+#SBATCH -t 24:00:00
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
 
@@ -14,5 +14,5 @@ module load Python/3.10.4-GCCcore-11.3.0
 source $HOME/coopwitholga/bin/activate
 
 # 3. Run your script
-python /gpfs/home4/wxia/coopwitholga/comparative_analysis_for_data_agumentaion/data_augmentation/FCPFlow/main_fcpflow.py
+python /gpfs/home4/wxia/coopwitholga/comparative_analysis_for_data_agumentaion/data_augmentation/FCPFlow/main_fcpflow-2.py
 
