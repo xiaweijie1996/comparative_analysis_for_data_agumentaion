@@ -49,7 +49,7 @@ def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='
     
     # Train the model
     model.model.train()
-    initial_loss = 1000
+    initial_loss = 100000000
     for epoch in range(epochs):
         for i, (X, y) in enumerate(train_loader):
             input_data = X.to(device)

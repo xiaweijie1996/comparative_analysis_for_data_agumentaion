@@ -7,7 +7,7 @@ NN:
   # dropout: 0.05
 
   # Training
-  batch_size: 64
+  batch_size: 1000
   split : 48
   epochs: 5000
   lr: 0.0002
