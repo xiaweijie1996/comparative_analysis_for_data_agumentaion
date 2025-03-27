@@ -164,7 +164,7 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
 
 
 def train(model, train_loader, optimizer, epochs, cond_dim, 
-          device, scaler, test_loader, scheduler, 
+          device, scaler, test_data_scaled, scheduler, 
           index, _wandb=False, _plot=False, _save=True):
     
     """
@@ -177,7 +177,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         cond_dim (int): Dimension of conditional variables.
         device (torch.device): Device to run the model (CPU or GPU).
         scaler (object): Scaler used for normalizing and inverse transforming data.
-        test_loader (torch.utils.data.DataLoader): DataLoader for testing data.
+        test_data_scaled (torch.utils.data.DataLoader): DataLoader for testing data.
         scheduler (torch.optim.lr_scheduler, optional): Learning rate scheduler. Defaults to None.
         pgap (int, optional): Interval for plotting generated samples. Defaults to 100.
         _wandb (bool, optional): Whether to log loss to Weights & Biases (wandb). Defaults to True.
@@ -189,15 +189,15 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -3000
+    loss_mid = 100000000000
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
             pre = data[0].to(device) 
             
             # Split the data into data and conditions
-            cond = pre[:,-cond_dim:]
-            data = pre[:,:-cond_dim] 
+            cond = pre[:,-cond_dim:]+ 0.01*torch.randn(pre[:,-cond_dim:].shape).to(device)
+            data = pre[:,:-cond_dim]+ 0.01*torch.randn(pre[:,:-cond_dim].shape).to(device)
             
             gen, logdet = model(data, cond)
  
@@ -221,18 +221,18 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         model.eval()
         with torch.no_grad():
             # Test the model
-            pre = next(iter(test_loader))[0].to(device)
-            cond_test = pre[:,-cond_dim:]
-            data_test = pre[:,:-cond_dim]
-            noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
-            gen_test = model.inverse(noise, cond_test)
-
-            llh_test =  loss # em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
-            loss_test = llh_test.mean()
+            cond_test = test_data_scaled[:,-cond_dim:]
+            data_test = test_data_scaled[:,:-cond_dim]
+            gen_test, logdet_test = model(data_test, cond_test)
+            llh_test = log_likelihood(gen_test, type='Gaussian')
+            loss_test = -llh_test.mean()-logdet_test
+            llh_test =  llh_test.mean()
+        
+        wandb.log({'loss_test': loss_test.item()})
             
         # Save the model
         if _save:
-            if loss_test.item() < loss_mid and epoch >= 400000:
+            if loss_test.item() < loss_mid and epoch >= 0:
                 print('save the model')
                 save_path = os.path.join('data_augmentation/FCPFlow/saved_model', f'FCPflow_model_{index}.pth')
                 torch.save(model.state_dict(), save_path)

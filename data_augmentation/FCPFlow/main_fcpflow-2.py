@@ -34,18 +34,14 @@ if __name__ == '__main__':
     FCPflow.to(device)
     print('Number of parameters: ', sum(p.numel() for p in FCPflow.parameters()))
         
-    optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"]) # weight_decay=config["FCPflow"]["w_decay"]
+    optimizer = torch.optim.Adam(FCPflow.parameters(), lr=config["FCPflow"]["lr_max"], weight_decay=config["FCPflow"]["w_decay"] ) # weight_decay=config["FCPflow"]["w_decay"]
     
     scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, step_size_up=config["FCPflow"]["lr_step_size"], 
                                             base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
                                                        cycle_momentum=False)
-    # # Load saved model
-    # _path = 'data_augmentation/FCPFlow/saved_model/FCPflow_model_0.5.pth'
-    # FCPflow.load_state_dict(torch.load(_path))
-    
-    for _index in [0.8, 1.0]: # 0.05, 0.05, 0.1,  0.5, 
-        
-        wandb.init(project="fcpflow", name=f"FCPflow_{_index*100}percent", reinit=True)
+
+    for _index in [0.05, 0.1, 0.3, 0.5, 0.8,  1.0]: # 0.05, 0.05, 0.1,  0.5,  
+        wandb.init(project="fcpflow_2", name=f"FCPflow_{_index*100}percent", reinit=True)
         # log the number of parameters
         wandb.config.update({"num_parameters": sum(p.numel() for p in FCPflow.parameters())})
         
@@ -68,13 +64,32 @@ if __name__ == '__main__':
         else:
             print('No Nan in the data!')
         
+        # Define the test data
+        test_data_path = 'dsets/test_set_wind.csv'
+        test_data_reshape = tl.Datareshape(test_data_path)
+        test_data = test_data_reshape.creat_new_frame()
+        test_data = test_data.values
+        test_data = torch.tensor(test_data, dtype=torch.float32)
+        test_zeros = torch.zeros(test_data.shape[0], 1)
+        test_data = torch.cat((test_data, test_zeros), dim=1)
+        # Check if nan exists in the data
+        if torch.isnan(test_data).any():
+            print('Nan exists in the data!')
+            # Drop the nan values
+            test_data = test_data[~torch.isnan(test_data).any(dim=1)]
+        else:
+            print('No Nan in the data!')
         
         # Define the data loader
+        # _data = torch.cat((_data), dim=0)
         loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
+        
+        test_data_scaled = _scaler.transform(test_data)
+        test_data_scaled = torch.tensor(test_data_scaled, dtype=torch.float32).to(device)
         
         # ----------------- Train Model -----------------
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
-                config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
+                config["FCPflow"]["condition_dim"], device, _scaler, test_data_scaled, scheduler, 
                 _index, _wandb=True, _save=True, _plot=True)
 
         print(f"Training completed successfully for index {_index}!")
