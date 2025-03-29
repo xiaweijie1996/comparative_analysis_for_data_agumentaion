@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, MinMaxScaler 
 import matplotlib.pyplot as plt
 
-def create_data_loader(data, batch_size=32, default_length = 765, shuffle=True):
+def create_data_loader(dict1, keys, batch_size=32, default_length = 765, shuffle=True):
     """
     Create a DataLoader from two NumPy arrays.
 
@@ -34,8 +34,8 @@ def create_data_loader(data, batch_size=32, default_length = 765, shuffle=True):
     # numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
 
     # X 
-    input_data = data.iloc[:, :-1].values
-    target_data = data.iloc[:, -1].values
+    input_data = dict1[keys[0]]
+    target_data = dict1[keys[1]]
     
     # Create a DataLoader from the Dataset
     data_loader = DataLoader(TensorDataset(torch.Tensor(input_data), torch.Tensor(target_data)),
@@ -84,8 +84,17 @@ def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='
         # Save the model if the loss is less than the initial loss
         if loss.item() < initial_loss:
             initial_loss = loss.item()
-            torch.save(model.model.state_dict(), 'new_exp_pred/nn/saved_model/{}_model_{}.pt'.format(_model, _index))
-            print('Model saved')
+            torch.save(model.model.state_dict(), 'exp_pred/nn/saved_model/{}_model_{}.pt'.format(_model, _index))
+            
+            # Plot the prediction
+            plt.plot(input_data[0].cpu().detach().numpy(), label='input')
+            _len = input_data.size(1)
+            plt.plot(np.arange(_len, _len + target_data.size(1)), target_data[0].cpu().detach().numpy(), label='target')
+            plt.plot(np.arange(_len, _len + output.size(1)), output[0].cpu().detach().numpy(), label='output')
+            plt.legend()
+            plt.title('Data_augmentation_{}'.format(_index))
+            plt.savefig('exp_pred/nn/saved_model/{}_pred_{}.png'.format(_model, _index))
+            plt.close()
             
 
 if __name__ == '__main__':
