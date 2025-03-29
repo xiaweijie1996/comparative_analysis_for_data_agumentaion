@@ -58,7 +58,7 @@ _data_test = _data_test[~np.isnan(_data_test).any(axis=1)]
         
 # Sampling
 FCPflow.eval()
-num_samples = _data_test.shape[0] 
+num_samples = 46993
 cond_test = torch.zeros(num_samples, 1).to(device)
 noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
 gen_test = FCPflow.inverse(noise, cond_test)

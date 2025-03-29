@@ -52,7 +52,7 @@ if __name__ == '__main__':
             pickle.dump(fitted_gmm, file)
         
         # ----------------- Sample and Plot -----------------
-        num_sample = _test_data.shape[0] # 1000 - config['Data_num'][_index]
+        num_sample = 46993
         _samples, _ = fitted_gmm.sample(num_sample)
         _samples = gmm.scaler.inverse_transform(_samples)
         print(_samples.shape)

@@ -37,14 +37,14 @@ if __name__ == '__main__':
         copula.fit()
         
         # Sample from the model
-        samples, _ = copula.sample(_test_data.shape[0]*2)
+        samples, _ = copula.sample(46993*2)
         
         # Drop nan of the row
         samples = samples[~np.isnan(samples).any(axis=1)]
         samples = samples.T
         print(samples.shape)
         
-        num_sample = _test_data.shape[0]
+        num_sample = 46993
         _samples = samples[:num_sample]
         
         # Save sampled data as csv
