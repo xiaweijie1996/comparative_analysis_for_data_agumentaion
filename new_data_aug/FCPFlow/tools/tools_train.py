@@ -193,7 +193,7 @@ def plot_figure_orgin(pre, re_data, scaler, con_dim, test, path='new_data_aug/FC
     plt.close()
 
     # Use Wandb to save the figure
-    wandb.log({"Generated Data Comparison": wandb.Image(path)})
+    wandb.log({"Generated Data Comparison origin": wandb.Image(path)})
     
 
 
@@ -224,7 +224,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -6
+    loss_mid = -4
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
@@ -279,6 +279,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
                 if _plot:
                     save_path = os.path.join('new_data_aug/FCPFlow/saved_model',f'FCPflow_generated_{index}_new.png')
                     plot_figure(pre, re_data, scaler, cond_dim, test, save_path)
+                    save_path = os.path.join('new_data_aug/FCPFlow/saved_model',f'FCPflow_generated_{index}_new_origin.png')
                     plot_figure_orgin(pre, re_data, scaler, cond_dim, test, save_path)
                 # ----------------- Plot the generated data -----------------
                 

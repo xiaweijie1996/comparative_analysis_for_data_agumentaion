@@ -13,34 +13,31 @@ import tools.tools_gmm as tg
 
 if __name__ == '__main__':
     # Import the configuration file
-    with open("data_augmentation/augmentation_config.yaml", "r") as file:
+    with open("new_data_aug/augmentation_config.yaml", "r") as file:
         config = yaml.safe_load(file)
         
     # ----------------- Define the GMM and Scaler -----------------
     gmm = gmm_piplie.GMmodel(n_iter=config["GMM"]["n_iter"], 
                              tol=config["GMM"]["tol"], 
                              covariance_type=config["GMM"]["covariance_type"],
-                             n_component= 6
+                             n_component= 5
                             )
     
     # --------------------- Data Process -----------------
-    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
-        # with open(config["Path"][f"input_path_{_index}"], 'rb') as file:
-        #     _data = pickle.load(file)
-        #     input_length = _data['train_input'].shape[1]
-        #     output_length = _data['train_output'].shape[1]
-            
-        # Split the data into train, validation and test sets
-        # _data = np.hstack((_data['train_input'], _data['train_output']))
-        
+    for _index in [1.0]:
+
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
-        data_reshape = tg.Datareshape(_data_path)
-        _data = data_reshape.creat_new_frame()
+        _data = pd.read_csv(_data_path, index_col=0)
         _data = _data.values
         
         # Drop the nan
         _data = _data[~np.isnan(_data).any(axis=1)]
+        
+        _test_path = 'dsets/test_set_wind.csv'
+        _test_data = pd.read_csv(_test_path, index_col=0)
+        _test_data = _test_data.values
+        _test_data = _test_data[~np.isnan(_test_data).any(axis=1)]
         
         # ----------------- Fit the GMM -----------------
         _data_scaled = gmm._scaler(_data)
@@ -50,34 +47,27 @@ if __name__ == '__main__':
         print(f"Optimal number of components: {gmm.n_component}")
         
         # Save the model
-        save_path = os.path.join('data_augmentation/GMM/saved_model', f'GMM_model_{_index}.pkl')
+        save_path = os.path.join('new_data_aug/GMM/saved_model', f'GMM_model_{_index}.pkl')
         with open(save_path, 'wb') as file:
             pickle.dump(fitted_gmm, file)
         
         # ----------------- Sample and Plot -----------------
-        num_sample = 978 # 1000 - config['Data_num'][_index]
+        num_sample = _test_data.shape[0] # 1000 - config['Data_num'][_index]
         _samples, _ = fitted_gmm.sample(num_sample)
         _samples = gmm.scaler.inverse_transform(_samples)
         print(_samples.shape)
         
         # Save sampled data as csv
-        save_path = os.path.join('data_augmentation/augmented_data', f'gmm_generated_data_{_index}.csv')
-        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-48)]
-        _output_column = [f'output_{i}' for i in range(48)]
+        save_path = os.path.join('new_data_aug/augmented_data', f'gmm_generated_data_{_index}.csv')
+        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-2)]
+        _output_column = ['output']
         _columns = _input_column + _output_column
         _frame = pd.DataFrame(_samples)
         _frame = pd.concat([_frame], axis=0)
         _frame.columns = _columns
         print(_frame.shape)
         _frame.to_csv(save_path)
-        
-        # Restor the data into a dictionary
-        _data_dict = data_reshape.restor_shape(_frame)
-        
-        # Save the data into a pickle file
-        _paht = f'data_augmentation/augmented_data/{_index*100}percent_dict_gmm.pkl'
-        with open(_paht, 'wb') as _file:
-            pickle.dump(_data_dict, _file)
+
         
         # if _index == 1.0:
         #     num_sample = 1000

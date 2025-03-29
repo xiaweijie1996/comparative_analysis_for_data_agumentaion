@@ -88,11 +88,11 @@ if __name__ == '__main__':
         gen_test = FCPflow.inverse(noise, cond_test)
         gen_test = torch.cat((gen_test, cond_test), dim=1)
         gen_test = _scaler.inverse_transform(gen_test.detach().cpu().numpy())
-        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]]
+        gen_test = gen_test[:,:config["FCPflow"]["num_channels"]-1]
         
-        save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_new_{_index}.csv')
-        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-48)]
-        _output_column = [f'output_{i}' for i in range(48)]
+        save_path = os.path.join('new_data_aug/augmented_data', f'fcpflow_generated_data_new_{_index}.csv')
+        _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-2)]
+        _output_column = ['output']
         _columns = _input_column + _output_column
         
         # Concatenate the _data with gen_test
@@ -102,15 +102,7 @@ if __name__ == '__main__':
         print(_frame.shape)
         _frame.to_csv(save_path)
         
-        # Restor the data into a dictionary
-        _data_dict = data_reshape.restor_shape(_frame)
         
-        # Save the data into a pickle file
-        _paht = f'data_augmentation/augmented_data/{_index*100}percent_dict_fcpflow_new.pkl'
-        with open(_paht, 'wb') as _file:
-            pickle.dump(_data_dict, _file)
-        
-
         # if _index == 1.0:
         #     # num_samples = 1000
         #     cond_test = torch.zeros(num_samples, 1).to(device)
