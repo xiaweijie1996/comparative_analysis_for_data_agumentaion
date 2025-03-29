@@ -9,16 +9,18 @@ import yaml
 import pickle
 import numpy as np
 import pandas as pd
+from torch.utils.data import DataLoader, TensorDataset
 
 import alg.models_fcpflow_lin as FCPflows
 import tools.tools_train as tl
+
 # import data_process.data_loader as dl
 # wandb.login(key='e4dfed43f8b9543d822f5c8501b98aef46a010f1')
 
 if __name__ == '__main__':
     
     # Import the configuration file
-    with open("data_augmentation/augmentation_config.yaml", "r") as file:
+    with open("new_data_aug/augmentation_config.yaml", "r") as file:
         config = yaml.safe_load(file)
             
     # Device configuration
@@ -40,37 +42,47 @@ if __name__ == '__main__':
                                             base_lr=config["FCPflow"]["lr_min"], max_lr=config["FCPflow"]["lr_max"],
                                                        cycle_momentum=False)
 
-    for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]: # 0.05, 0.05, 0.1, 
+    for _index in [1.0]: # 0.05, 0.05, 0.1, 
         
-        wandb.init(project="fcpflow", name=f"FCPflow_{_index*100}percent", reinit=True)
+        wandb.init(project="fcpflow_new", name=f"FCPflow_{_index*100}percent", reinit=True)
         # log the number of parameters
         wandb.config.update({"num_parameters": sum(p.numel() for p in FCPflow.parameters())})
         
         # ---------------Data Process-----------------
         _data_path = config["Path"][f"input_path_{_index}"]  
-        data_reshape = tl.Datareshape(_data_path)
-        _data = data_reshape.creat_new_frame()
+        _data = pd.read_csv(_data_path, index_col=0)
         _data = _data.values
             
         # Split the data into train, validation and test sets
         _original_data = _data.copy()
-        _data = torch.tensor(_data, dtype=torch.float32)
-        _zeros = torch.zeros(_data.shape[0], 1)
+        # Drop nans
+        _data = _data[~np.isnan(_data).any(axis=1)]
+        _data = torch.tensor(_data, dtype=torch.float32).to(device)
+        _zeros = torch.randn(_data.shape[0], 2).to(device) # torch.zeros(_data.shape[0], 1)
         _data = torch.cat((_data, _zeros), dim=1)
         print(_data.shape)
-        # Define the data loader
-        loader, _scaler = tl.create_data_loader(_data, config["FCPflow"]["batch_size"])
+
         
+        # Define the data loader
+        loader, _scaler = tl.create_data_loader(_data.cpu(), config["FCPflow"]["batch_size"])
+        
+        _data_test = 'dsets/test_set_wind.csv'
+        _data_test = pd.read_csv(_data_test, index_col=0)
+        _data_test = _data_test.values
+        _data_test = _data_test[~np.isnan(_data_test).any(axis=1)]
+        _data_test = torch.tensor(_data_test, dtype=torch.float32)
+        print(_data_test.shape)
+
         # ----------------- Train Model -----------------
         tl.train(FCPflow, loader, optimizer, config["FCPflow"]["num_epochs"],
-                config["FCPflow"]["condition_dim"], device, _scaler, loader, scheduler, 
+                config["FCPflow"]["condition_dim"], device, _scaler, _data_test, scheduler, 
                 _index, _wandb=True, _save=True, _plot=True)
 
         print(f"Training completed successfully for index {_index}!")
 
         # ----------------- Sample-----------------
         FCPflow.eval()
-        num_samples = 978 # 1000 - config['Data_num'][_index]
+        num_samples = _data_test.shape[0] # 1000 - config['Data_num'][_index]
         cond_test = torch.zeros(num_samples, 1).to(device)
         noise = torch.randn(cond_test.shape[0], config["FCPflow"]["num_channels"]).to(device)
         gen_test = FCPflow.inverse(noise, cond_test)
@@ -78,7 +90,7 @@ if __name__ == '__main__':
         gen_test = _scaler.inverse_transform(gen_test.detach().cpu().numpy())
         gen_test = gen_test[:,:config["FCPflow"]["num_channels"]]
         
-        save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_{_index}.csv')
+        save_path = os.path.join('data_augmentation/augmented_data', f'fcpflow_generated_data_new_{_index}.csv')
         _input_column = [f'input_{i}' for i in range(config["FCPflow"]["num_channels"]-48)]
         _output_column = [f'output_{i}' for i in range(48)]
         _columns = _input_column + _output_column
@@ -94,7 +106,7 @@ if __name__ == '__main__':
         _data_dict = data_reshape.restor_shape(_frame)
         
         # Save the data into a pickle file
-        _paht = f'data_augmentation/augmented_data/{_index*100}percent_dict_fcpflow.pkl'
+        _paht = f'data_augmentation/augmented_data/{_index*100}percent_dict_fcpflow_new.pkl'
         with open(_paht, 'wb') as _file:
             pickle.dump(_data_dict, _file)
         

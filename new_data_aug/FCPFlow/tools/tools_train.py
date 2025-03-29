@@ -58,15 +58,19 @@ class Datareshape():
         return _data_dict
         
 
-def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), shuffle=True):
+def create_data_loader(numpy_array, batch_size=32, scaler = StandardScaler(), shuffle=True, fit_scaler=True):
     # Check if nan exists in the data, if nan drop
     if np.isnan(numpy_array).any():
         print('There are nan in the data, drop them')
         numpy_array = numpy_array[~np.isnan(numpy_array).any(axis=1)]
 
-    # Scalr the 
-    numpy_array = scaler.fit_transform(numpy_array)
-    
+    if fit_scaler:
+        # Fit the scaler to the data
+        numpy_array = scaler.fit_transform(numpy_array)
+    else:
+        # Transform the data using the fitted scaler
+        numpy_array = scaler.transform(numpy_array)
+
     # Convert the NumPy array to a PyTorch Tensor
     tensor_data = torch.Tensor(numpy_array)
 
@@ -93,65 +97,47 @@ def log_likelihood(x, type='Gaussian'):
         log_likelihood = -0.5 * x.pow(2).sum(dim=1)
     return log_likelihood
 
-def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.png'):
+def plot_figure(pre, re_data, scaler, con_dim, test, path='new_data_aug/FCPFlow/saved_model/FCPflow_generated_1.0_new.png'):
     # Inverse transform to get the original scale of the data
-    orig_data_pre = scaler.inverse_transform(pre.cpu().detach().numpy())
-    
-    orig_data_re = scaler.inverse_transform(re_data.cpu().detach().numpy())
-    
+    orig_data_pre = pre.cpu().detach().numpy()
+    orig_data_re = re_data.cpu().detach().numpy()
+    test = np.hstack((test, np.zeros((test.shape[0], 2))))
+    test = scaler.transform(test)
+    test = test[:,:-2]
+
     # For value < 0 , set 0
-    orig_data_pre[orig_data_pre < 0] = 0
-    orig_data_pre[orig_data_pre > 600] = 600
     cmap = plt.get_cmap('RdBu_r')
-    fig, axs = plt.subplots(4, 1, figsize=(10, 20))  # TFour rows for comparison
+    fig, axs = plt.subplots(3, 1, figsize=(10, 20))  # TFour rows for comparison
     
     if con_dim > 0:
         # Original data plot
-        _cond_pre = orig_data_pre[:, -48-con_dim:-con_dim].sum(axis=1)
-        for i, condition in zip(orig_data_pre[:, -48-con_dim:-con_dim], _cond_pre):
+        _cond_pre = orig_data_pre[:500, :-2].sum(axis=1)
+        for i, condition in zip(orig_data_pre[:, :-2], _cond_pre):
             color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
             axs[0].plot(i, color=color, alpha=0.3)
         axs[0].set_title('Original Wind Output')
         
         # Reconstructed/Generated data plot
-        _cond_re = orig_data_re[:, -48-con_dim:-con_dim].sum(axis=1)
-        for i, condition in zip(orig_data_re[:, -48-con_dim:-con_dim], _cond_re):
+        _cond_re = orig_data_re[:500, :-2].sum(axis=1)
+        for i, condition in zip(orig_data_re[:, :-2], _cond_re):
             color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
             axs[1].plot(i, color=color, alpha=0.3)
         axs[1].set_title('Reconstructed/Generated Wind Output')
         
         # Original data plot
-        _cond_pre_w = orig_data_pre[:, :-48-con_dim].sum(axis=1)
-        for i, condition in zip(orig_data_pre[:, :-48-con_dim], _cond_pre_w):
+        _cond_pre_w =  test[:, :].sum(axis=1)
+        for i, condition in zip( test[:, :], _cond_pre_w):
             color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
             axs[2].plot(i, color=color, alpha=0.3)
         axs[2].set_title('Original Wind Information (direction, speed)')
         
-        # Reconstructed/Generated data plot
-        _cond_re_w = orig_data_re[:, :-48-con_dim].sum(axis=1)
-        for i, condition in zip(orig_data_re[:, :-48-con_dim], _cond_re_w):
-            color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
-            axs[3].plot(i, color=color, alpha=0.3)
-        axs[3].set_title('Reconstructed/Generated Wind Information (direction, speed)')
-        
-        
         # Add colorbars to each subplot
-        for ax, _cond in zip(axs, [_cond_pre, _cond_re, _cond_pre_w, _cond_re_w]):
+        for ax, _cond in zip(axs, [_cond_pre, _cond_re, _cond_pre_w]):
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=_cond.min(), vmax=_cond.max()))
             sm.set_array([])
             cbar = plt.colorbar(sm, ax=ax)
             cbar.set_label('Condition Value scaled', rotation=270, labelpad=20)
         
-    else:
-        # Original data plot
-        for i in orig_data_pre:
-            axs[0].plot(i, color='blue', alpha=0.1)
-        axs[0].set_title('Original Data')
-
-        # Reconstructed/Generated data plot
-        for i in orig_data_re:
-            axs[1].plot(i, color='red', alpha=0.1)
-        axs[1].set_title('Reconstructed/Generated Data')
 
     # Adjust layout and save the figure
     plt.tight_layout()
@@ -159,12 +145,61 @@ def plot_figure(pre, re_data, scaler, con_dim, path='Generated Data Comparison.p
     plt.close()
 
     # Use Wandb to save the figure
-    # wandb.log({"Generated Data Comparison": wandb.Image(path)})
+    wandb.log({"Generated Data Comparison": wandb.Image(path)})
+    
+
+def plot_figure_orgin(pre, re_data, scaler, con_dim, test, path='new_data_aug/FCPFlow/saved_model/FCPflow_generated_1.0_new_origin.png'):
+    # Inverse transform to get the original scale of the data
+    orig_data_pre = scaler.inverse_transform(pre.cpu().detach().numpy())
+    orig_data_re = scaler.inverse_transform(re_data.cpu().detach().numpy())
+
+    # For value < 0 , set 0
+    cmap = plt.get_cmap('RdBu_r')
+    fig, axs = plt.subplots(3, 1, figsize=(10, 20))  # TFour rows for comparison
+    
+    if con_dim > 0:
+        # Original data plot
+        _cond_pre = orig_data_pre[:500, :-2].sum(axis=1)
+        for i, condition in zip(orig_data_pre[:, :-2], _cond_pre):
+            color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
+            axs[0].plot(i, color=color, alpha=0.3)
+        axs[0].set_title('Original Wind Output')
+        
+        # Reconstructed/Generated data plot
+        _cond_re = orig_data_re[:500, :-2].sum(axis=1)
+        for i, condition in zip(orig_data_re[:, :-2], _cond_re):
+            color = cmap((condition - _cond_re.min()) / (_cond_re.max() - _cond_re.min()))
+            axs[1].plot(i, color=color, alpha=0.3)
+        axs[1].set_title('Reconstructed/Generated Wind Output')
+        
+        # Original data plot
+        _cond_pre_w =  test[:, :].sum(axis=1)
+        for i, condition in zip( test[:, :], _cond_pre_w):
+            color = cmap((condition - _cond_pre.min()) / (_cond_pre.max() - _cond_pre.min()))
+            axs[2].plot(i, color=color, alpha=0.3)
+        axs[2].set_title('Original Wind Information (direction, speed)')
+        
+        # Add colorbars to each subplot
+        for ax, _cond in zip(axs, [_cond_pre, _cond_re, _cond_pre_w]):
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=_cond.min(), vmax=_cond.max()))
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax)
+            cbar.set_label('Condition Value scaled', rotation=270, labelpad=20)
+        
+
+    # Adjust layout and save the figure
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+    # Use Wandb to save the figure
+    wandb.log({"Generated Data Comparison": wandb.Image(path)})
     
 
 
+
 def train(model, train_loader, optimizer, epochs, cond_dim, 
-          device, scaler, test_loader, scheduler, 
+          device, scaler, test, scheduler, 
           index, _wandb=False, _plot=False, _save=True):
     
     """
@@ -189,7 +224,7 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
     """
     
     model.train()
-    loss_mid = -3000
+    loss_mid = -6
     for epoch in range(epochs):
         for _, data in enumerate(train_loader):
             model.train()
@@ -206,7 +241,6 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             loss =  -llh.mean()-logdet
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Use norm-based clipping
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
@@ -221,10 +255,9 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
         model.eval()
         with torch.no_grad():
             # Test the model
-            pre = next(iter(test_loader))[0].to(device)
+            pre = next(iter(train_loader))[0].to(device)
             cond_test = pre[:,-cond_dim:]
-            data_test = pre[:,:-cond_dim]
-            noise = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
+            noise = torch.randn(pre.shape[0], pre.shape[1]-1).to(device)
             gen_test = model.inverse(noise, cond_test)
 
             llh_test =  loss # em.MMD_kernel(gen_test.detach().numpy(), data_test.detach().numpy())
@@ -232,23 +265,21 @@ def train(model, train_loader, optimizer, epochs, cond_dim,
             
         # Save the model
         if _save:
-            if loss_test.item() < loss_mid and epoch >= 45000:
+            if loss_test.item() < loss_mid:
                 print('save the model')
-                save_path = os.path.join('data_augmentation/FCPFlow/saved_model', f'FCPflow_model_{index}.pth')
+                save_path = os.path.join('new_data_aug/FCPFlow/saved_model', f'FCPflow_model_{index}.pth')
                 torch.save(model.state_dict(), save_path)
                 loss_mid = loss_test.item()
 
                 # ----------------- Plot the generated data -----------------
-                        
                 # Plot the generated data
-                z = torch.randn(data_test.shape[0], data_test.shape[1]).to(device)
-                gen_test = model.inverse(z, cond_test)
                 re_data = torch.cat((gen_test, cond_test), dim=1)
                 re_data = re_data.detach().cpu()
             
                 if _plot:
-                    save_path = os.path.join('data_augmentation/FCPFlow/saved_model',f'FCPflow_generated_{index}.png')
-                    plot_figure(pre, re_data, scaler, cond_dim, save_path)
+                    save_path = os.path.join('new_data_aug/FCPFlow/saved_model',f'FCPflow_generated_{index}_new.png')
+                    plot_figure(pre, re_data, scaler, cond_dim, test, save_path)
+                    plot_figure_orgin(pre, re_data, scaler, cond_dim, test, save_path)
                 # ----------------- Plot the generated data -----------------
                 
         # # ----------------- Test the model -----------------
