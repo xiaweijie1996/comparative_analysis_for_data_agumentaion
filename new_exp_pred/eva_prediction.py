@@ -13,13 +13,18 @@ def mae_loss(pred, real):
     return np.mean(np.abs(pred - real))
 
 if __name__ == "__main__":
-    gen_models = ['DoppelGANger','gmm', 'copula', 'flow', 'real']
+    gen_models = ['gmm', 'copula', 'flow', 'real'] # 'DoppelGANger',
     pre_models = ['NN']
-    indexes = [0.05, 0.1, 0.3, 0.5, 0.8, 1.0] #0.05,
+    indexes = [ 1.0] #0.05,
 
-    real_data_test_path = 'dsets/test_set_wind_processed.pkl'
-    with open(real_data_test_path, 'rb') as f:
-        real_data_test = pickle.load(f)
+    # Load test data
+    test_path = f'dsets/test_set_wind.csv'
+    real_data_test = pd.read_csv(test_path, index_col=0)
+    # drop nan
+    real_data_test = real_data_test.dropna()
+        
+    real_data_test = (real_data_test.iloc[:, :-1].values, real_data_test.iloc[:, -1].values)
+
 
     csv = pd.DataFrame(columns=['gen_Model', 'pre_Model' , 'Index', 'MAE', 'RMSE'])
     
@@ -27,18 +32,17 @@ if __name__ == "__main__":
     for gen_model in gen_models:
         for _index in indexes:
             try:
-                for pre_model in pre_models:
-                    pre_path = f'exp_pred/pred_results/{pre_model}_{gen_model}_pred_results_{_index}.pickle'
-                    
-                    with open(pre_path, 'rb') as f:
-                        pre_data = pickle.load(f)
-                        
+                for pre_model in pre_models: # new_exp_pred/pred_results/pred_results_copula_1.0.csv
+                    pre_path = f'new_exp_pred/pred_results/pred_results_{gen_model}_{_index}.csv'
+                    print(pre_path)
+                    _data = pd.read_csv(pre_path, index_col=0)
+                    pre_data = _data.iloc[:, -1].values
                     print(f'Model: {gen_model}, Index: {_index}')
                     print(f'Pre_Model: {pre_model}')    
-                    print(f'MAE: {mae_loss(pre_data, real_data_test["output"])}')
-                    print(f'RMSE: {rmse_loss(pre_data, real_data_test["output"])}')
+                    print(f'MAE: {mae_loss(pre_data, real_data_test[1])}')
+                    print(f'RMSE: {rmse_loss(pre_data, real_data_test[1])}')
                     
-                    csv = csv._append({'gen_Model': gen_model, 'pre_Model':pre_model, 'Index': _index, 'MAE': mae_loss(pre_data, real_data_test['output']), 'RMSE': rmse_loss(pre_data, real_data_test['output'])}, ignore_index=True)
+                    csv = csv._append({'gen_Model': gen_model, 'pre_Model':pre_model, 'Index': _index, 'MAE': mae_loss(pre_data, real_data_test[1]), 'RMSE': rmse_loss(pre_data, real_data_test[1])}, ignore_index=True)
             except:
                 pass
     
@@ -59,7 +63,7 @@ if __name__ == "__main__":
     except:
         pass
       
-    csv.to_csv('exp_pred/eva_results.csv', index=False)
+    csv.to_csv('new_exp_pred/eva_results.csv', index=False)
                 
             
     

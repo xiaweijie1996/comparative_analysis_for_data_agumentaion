@@ -75,7 +75,7 @@ if __name__ == '__main__':
                     test_set=real_data_test)
         
         # Load the best model
-        predictor.model.load_state_dict(torch.load('new_exp_pred/nn/saved_model/flow_model_1.0.pt'))
+        predictor.model.load_state_dict(torch.load(f'new_exp_pred/nn/saved_model/{_m}_model_1.0.pt'))
         
         # ---------- Test the model -----------------
         predictor.model.eval()
