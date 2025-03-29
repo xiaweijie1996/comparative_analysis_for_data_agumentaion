@@ -13,7 +13,7 @@ def mae_loss(pred, real):
     return np.mean(np.abs(pred - real))
 
 if __name__ == "__main__":
-    gen_models = ['DoppelGANger','gmm', 'copula', 'flow']
+    gen_models = ['DoppelGANger','gmm', 'copula', 'flow', 'real']
     pre_models = ['NN']
     indexes = [0.05, 0.1, 0.3, 0.5, 0.8, 1.0] #0.05,
 
