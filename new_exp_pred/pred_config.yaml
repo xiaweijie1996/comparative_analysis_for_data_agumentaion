@@ -2,15 +2,15 @@ NN:
   # # Linear Model
   input_dim: 6
   output_dim: 1
-  hidden_dim: 96
-  n_layers: 5
-  dropout: 0.05
+  hidden_dim: 528
+  n_layers: 4
+  dropout: 0.01
 
   # Training
   batch_size: 5000
   split : 1000
-  epochs: 2000
-  lr: 0.0002
+  epochs: 10000
+  lr: 0.001
   default_length : 978
 
   in_channels : 8
