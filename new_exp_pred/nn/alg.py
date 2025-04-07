@@ -20,17 +20,19 @@ class NNpredictor:
     def _create_model(self):
         model = nn.Sequential(
             nn.Linear(self.input_dim, self.hidden_dim),
+            nn.BatchNorm1d(self.hidden_dim),
             nn.LeakyReLU(),
-            nn.Dropout(self.dropout),
+
         )
         for _ in range(self.n_layers - 1):
             model.add_module('hidden', nn.Sequential(
                 nn.Linear(self.hidden_dim, self.hidden_dim),
+                nn.BatchNorm1d(self.hidden_dim),
                 nn.LeakyReLU(),
-                nn.Dropout(self.dropout),
             ))
         model.add_module('output', nn.Sequential(
             nn.Linear(self.hidden_dim, self.output_dim),
+            nn.Tanh(),
         ))
         return model
     

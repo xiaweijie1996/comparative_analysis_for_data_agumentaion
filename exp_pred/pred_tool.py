@@ -37,13 +37,19 @@ def create_data_loader(data, batch_size=32, default_length = 765, shuffle=True):
     input_data = data.iloc[:, :-1].values
     target_data = data.iloc[:, -1].values
     
+    # Input scaler
+    scaler_input = MinMaxScaler()
+    scaler_output = MinMaxScaler()
+    input_data = scaler_input.fit_transform(input_data)
+    target_data = scaler_output.fit_transform(target_data.reshape(-1, 1))
+    
     # Create a DataLoader from the Dataset
     data_loader = DataLoader(TensorDataset(torch.Tensor(input_data), torch.Tensor(target_data)),
                              batch_size=batch_size, shuffle=shuffle)
     
-    return data_loader
+    return data_loader, scaler_input, scaler_output
 
-def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
+def train(model, train_loader, device, optimizer, scalers, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
     # Define the loss function
     criterion = nn.MSELoss()
     
@@ -79,7 +85,11 @@ def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='
         
         print('Epoch: {}, Loss in test: {}, Loss in train: {}'.format(epoch, loss_test.item(), loss.item()))
         
-        wandb.log({'Loss in test': loss_test.item(), 'Loss in train': loss.item()})
+        scaler_input, scaler_output = scalers
+        # Inverse transform the data
+        scaled_target_data = scaler_output.inverse_transform(target_data.cpu().numpy().reshape(-1,1))
+        scaled_output = scaler_output.inverse_transform(output.cpu().numpy().reshape(-1,1))
+        wandb.log({'Loss in test': loss_test.item(), 'Loss in train': loss.item(), 'MAE': np.mean(np.abs(scaled_output - scaled_target_data))})
         
         # Save the model if the loss is less than the initial loss
         if loss.item() < initial_loss:

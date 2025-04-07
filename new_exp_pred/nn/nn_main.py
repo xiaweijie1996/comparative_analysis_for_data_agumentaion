@@ -23,6 +23,8 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
+
+        
     for _m in ['flow', 'gmm', 'copula','real']:  # 'flow', 'DoppelGANger', 'gmm', 'copula',
         if _m == 'gmm':
             _path = 'new_data_aug/augmented_data/gmm_generated_data_1.0.csv'
@@ -33,13 +35,13 @@ if __name__ == '__main__':
         elif _m == 'real':
             _path = f'dsets/train_set_wind.csv'
         
-        # Initialize the wandb
-        wandb.init(project='wind_prediction_new')
+            # Initialize the wandb
+        wandb.init(project='wind_prediction_new_1w', name=f'{_m}_1.0')
         
         aug_data = pd.read_csv(_path, index_col=0)
         aug_data = aug_data.dropna()
 
-        train_loader = pt.create_data_loader(aug_data,
+        train_loader, scaler_input, scaler_output = pt.create_data_loader(aug_data,
                                             batch_size=pre_config['NN']['batch_size'], 
                                             default_length=pre_config['NN']['default_length'],
                                             shuffle=True)
@@ -50,7 +52,8 @@ if __name__ == '__main__':
         # drop nan
         real_data_test = real_data_test.dropna()
             
-        real_data_test = (real_data_test.iloc[:, :-1].values, real_data_test.iloc[:, -1].values)
+        real_data_test = (scaler_input.transform(real_data_test.iloc[:, :-1].values),
+                        scaler_output.transform(real_data_test.iloc[:, -1].values.reshape(-1,1)))
 
         # ---------- Load the model -----------------
         predictor = al.NNpredictor(
@@ -67,12 +70,12 @@ if __name__ == '__main__':
         predictor.model.to(device)
 
         # ---------- Train the model -----------------
-        optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'])
+        optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'], weight_decay=pre_config['NN']['weight_decay'])
         
         pt.train(predictor, train_loader, device, optimizer, 
                     epochs=pre_config['NN']['epochs'], 
                     lr=pre_config['NN']['lr'], _model=_m, _index=1.0,
-                    test_set=real_data_test)
+                    test_set=real_data_test, scalers = (scaler_input, scaler_output))
         
         # Load the best model
         predictor.model.load_state_dict(torch.load(f'new_exp_pred/nn/saved_model/{_m}_model_1.0.pt'))
