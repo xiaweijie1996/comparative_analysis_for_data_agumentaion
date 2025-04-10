@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, MinMaxScaler 
 import matplotlib.pyplot as plt
 
-def create_data_loader(dict1, keys, batch_size=32, default_length = 765, shuffle=True):
+def create_data_loader(data, batch_size=32, default_length = 765, shuffle=True):
     """
     Create a DataLoader from two NumPy arrays.
 
@@ -34,16 +34,22 @@ def create_data_loader(dict1, keys, batch_size=32, default_length = 765, shuffle
     # numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
 
     # X 
-    input_data = dict1[keys[0]]
-    target_data = dict1[keys[1]]
+    input_data = data.iloc[:, :-1].values
+    target_data = data.iloc[:, -1].values
+    
+    # Input scaler
+    scaler_input = MinMaxScaler()
+    scaler_output = MinMaxScaler()
+    input_data = scaler_input.fit_transform(input_data)
+    target_data = scaler_output.fit_transform(target_data.reshape(-1, 1))
     
     # Create a DataLoader from the Dataset
     data_loader = DataLoader(TensorDataset(torch.Tensor(input_data), torch.Tensor(target_data)),
                              batch_size=batch_size, shuffle=shuffle)
     
-    return data_loader
+    return data_loader, scaler_input, scaler_output
 
-def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
+def train(model, train_loader, device, optimizer, scalers, epochs=10, lr=0.001, _model ='gmm', _index='0,1', test_set=None):
     # Define the loss function
     criterion = nn.MSELoss()
     
@@ -79,22 +85,17 @@ def train(model, train_loader, device, optimizer, epochs=10, lr=0.001, _model ='
         
         print('Epoch: {}, Loss in test: {}, Loss in train: {}'.format(epoch, loss_test.item(), loss.item()))
         
-        wandb.log({'Loss in test': loss_test.item(), 'Loss in train': loss.item()})
+        scaler_input, scaler_output = scalers
+        # Inverse transform the data
+        scaled_target_data = scaler_output.inverse_transform(target_data.cpu().numpy().reshape(-1,1))
+        scaled_output = scaler_output.inverse_transform(output.cpu().numpy().reshape(-1,1))
+        wandb.log({'Loss in test': loss_test.item(), 'Loss in train': loss.item(), 'MAE': np.mean(np.abs(scaled_output - scaled_target_data))})
         
         # Save the model if the loss is less than the initial loss
         if loss.item() < initial_loss:
             initial_loss = loss.item()
-            torch.save(model.model.state_dict(), 'exp_pred/nn/saved_model/{}_model_{}.pt'.format(_model, _index))
-            
-            # Plot the prediction
-            plt.plot(input_data[0].cpu().detach().numpy(), label='input')
-            _len = input_data.size(1)
-            plt.plot(np.arange(_len, _len + target_data.size(1)), target_data[0].cpu().detach().numpy(), label='target')
-            plt.plot(np.arange(_len, _len + output.size(1)), output[0].cpu().detach().numpy(), label='output')
-            plt.legend()
-            plt.title('Data_augmentation_{}'.format(_index))
-            plt.savefig('exp_pred/nn/saved_model/{}_pred_{}.png'.format(_model, _index))
-            plt.close()
+            torch.save(model.model.state_dict(), 'new_exp_pred/nn/saved_model/{}_model_{}.pt'.format(_model, _index))
+            print('Model saved')
             
 
 if __name__ == '__main__':

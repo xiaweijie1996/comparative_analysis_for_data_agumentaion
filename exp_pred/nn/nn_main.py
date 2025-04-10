@@ -8,6 +8,7 @@ import yaml
 import pickle
 import numpy as np
 import wandb
+import matplotlib.pyplot as plt
 
 import alg as al
 import exp_pred.pred_tool as pt
@@ -22,7 +23,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load the data
-    for _m in [  'real']:  # 'flow', 'DoppelGANger', 'gmm', 'copula',
+    for _m in [  'real', 'flow', 'DoppelGANger', 'gmm', 'copula']:  # 'flow', 'DoppelGANger', 'gmm', 'copula',
         for _index in [0.05, 0.1, 0.3, 0.5, 0.8, 1.0]:
             if _m == 'DoppelGANger':
                 _path = f'data_augmentation/augmented_data/{int(_index*100)}percent_dict.pkl'
@@ -36,7 +37,8 @@ if __name__ == '__main__':
                 _path = f'dsets/percentage/continuous/{int(_index*100)}percent_dataset.pkl'
            
             # Initialize the wandb
-            wandb.init(project='wind_prediction')
+            wandb.init(project='wind_prediction_changed', 
+                        name=f'NN_{_m}_model_{_index}')
             
             # Load the data from the path
             with open(_path, 'rb') as f:
@@ -44,7 +46,7 @@ if __name__ == '__main__':
                 keys = list(aug_data.keys())
                 print(keys)
             
-            train_loader = pt.create_data_loader(aug_data, keys, 
+            train_loader, scaler_input, scaler_output = pt.create_data_loader(aug_data, keys, 
                                                 batch_size=pre_config['NN']['batch_size'], 
                                                 default_length=pre_config['NN']['default_length'],
                                                 shuffle=True)
@@ -56,16 +58,24 @@ if __name__ == '__main__':
             real_data_test = (real_data_test['input'], real_data_test['output'])
 
             # ---------- Load the model -----------------
-            predictor = al.CNNConvpredictor(
-                    in_channels=pre_config['NN']['in_channels'],
-                    hidden_channels=pre_config['NN']['hidden_channels'],
-                    out_channels=pre_config['NN']['out_channels'],
-                    kernel_size=pre_config['NN']['kernel_size'],
-                    dropout=pre_config['NN']['dropout']
-                )
+            # predictor = al.CNNConvpredictor(
+            #         in_channels=pre_config['NN']['in_channels'],
+            #         hidden_channels=pre_config['NN']['hidden_channels'],
+            #         out_channels=pre_config['NN']['out_channels'],
+            #         kernel_size=pre_config['NN']['kernel_size'],
+            #         dropout=pre_config['NN']['dropout']
+            #     )
+            predictor = al.NNpredictor(
+                pre_config['NN']['input_dim'],
+                pre_config['NN']['output_dim'],
+                pre_config['NN']['hidden_dim'],
+                pre_config['NN']['n_layers'],
+                pre_config['NN']['dropout']
+            )
             
             print('Number of parameters: {}'.format(sum(p.numel() for p in predictor.model.parameters())))
-            
+            # log model amount of parameters
+            wandb.log({"model_parameters": sum(p.numel() for p in predictor.model.parameters())})
             
             predictor.model.to(device)
 
@@ -75,7 +85,7 @@ if __name__ == '__main__':
             pt.train(predictor, train_loader, device, optimizer, 
                      epochs=pre_config['NN']['epochs'], 
                      lr=pre_config['NN']['lr'], _model=_m, _index=_index,
-                     test_set=real_data_test)
+                     test_set=real_data_test, scalers = (scaler_input, scaler_output))
             
             # Load the best model
             predictor.model.load_state_dict(torch.load(f'exp_pred/nn/saved_model/{_m}_model_{_index}.pt'))
@@ -85,7 +95,10 @@ if __name__ == '__main__':
 
             # Make prediction
             input_data = real_data_test[0]
+            input_data = input_data.reshape(input_data.shape[0], -1)
+            input_data = scaler_input.transform(input_data)
             input_data = torch.tensor(input_data).to(device)
+            
             target_data = real_data_test[1]
             target_data = torch.tensor(target_data).to(device)
             
@@ -94,19 +107,19 @@ if __name__ == '__main__':
             output = predictor.model(input_data)
             output = output.cpu().detach().numpy()
             
-            # Save the prediction exp_pred//DoppelGANger_model_0.05.pt
+            # Save the prediction 
             save_pred_path = f'exp_pred/pred_results/NN_{_m}_pred_results_{_index}.pickle'
             with open(save_pred_path, 'wb') as f:
                 pickle.dump(output, f)
                 
-            # Plot the prediction and save the figure
-            import matplotlib.pyplot as plt
-            # plOIT 10 subplots
-            fig, axs = plt.subplots(10, 1, figsize=(10, 20))
-            for i in range(10):
-                axs[i].plot(target_data[i*4].cpu().detach().numpy().flatten(), label='target')
-                axs[i].plot(output[i*4].flatten(), label='output')
-                axs[i].legend()
-                axs[i].set_title(f'Data_augmentation_{_index}')
-            plt.savefig(f'exp_pred/pred_results/plots/NN_{_m}_pred_results_{_index}.png')
+            # # Plot the prediction and save the figure
+
+            # # plOIT 10 subplots
+            # fig, axs = plt.subplots(10, 1, figsize=(10, 20))
+            # for i in range(10):
+            #     axs[i].plot(target_data[i*4].cpu().detach().numpy().flatten(), label='target')
+            #     axs[i].plot(output[i*4].flatten(), label='output')
+            #     axs[i].legend()
+            #     axs[i].set_title(f'Data_augmentation_{_index}')
+            # plt.savefig(f'exp_pred/pred_results/plots/NN_{_m}_pred_results_{_index}.png')
         

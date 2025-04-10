@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, MinMaxScaler 
 import matplotlib.pyplot as plt
 
-def create_data_loader(data, batch_size=32, default_length = 765, shuffle=True):
+def create_data_loader(data, keys, batch_size=32, default_length = 765, shuffle=True):
     """
     Create a DataLoader from two NumPy arrays.
 
@@ -34,14 +34,18 @@ def create_data_loader(data, batch_size=32, default_length = 765, shuffle=True):
     # numpy_array2 = numpy_array2[:, :sample_len] # Get the last sample_len from numpy_array1
 
     # X 
-    input_data = data.iloc[:, :-1].values
-    target_data = data.iloc[:, -1].values
+    input_data = data[keys[0]]
+    target_data = data[keys[1]]
+    input_data = input_data.reshape(input_data.shape[0], -1)
+    target_data = target_data.reshape(target_data.shape[0], -1)
+    print('input_data shape:', input_data.shape)
+    print('target_data shape:', target_data.shape)
     
     # Input scaler
     scaler_input = MinMaxScaler()
     scaler_output = MinMaxScaler()
     input_data = scaler_input.fit_transform(input_data)
-    target_data = scaler_output.fit_transform(target_data.reshape(-1, 1))
+    target_data = scaler_output.fit_transform(target_data)
     
     # Create a DataLoader from the Dataset
     data_loader = DataLoader(TensorDataset(torch.Tensor(input_data), torch.Tensor(target_data)),
@@ -74,8 +78,12 @@ def train(model, train_loader, device, optimizer, scalers, epochs=10, lr=0.001, 
         model.model.eval()
         with torch.no_grad():
             input_data = test_set[0]
+            input_data = input_data.reshape(input_data.shape[0], -1)
+            input_data = scalers[0].transform(input_data)
             input_data = torch.tensor(input_data).to(device)
+            
             target_data = test_set[1]
+            target_data = target_data.reshape(target_data.shape[0], -1)
             target_data = torch.tensor(target_data).to(device)
             
             target_data = target_data.float()
@@ -87,14 +95,14 @@ def train(model, train_loader, device, optimizer, scalers, epochs=10, lr=0.001, 
         
         scaler_input, scaler_output = scalers
         # Inverse transform the data
-        scaled_target_data = scaler_output.inverse_transform(target_data.cpu().numpy().reshape(-1,1))
-        scaled_output = scaler_output.inverse_transform(output.cpu().numpy().reshape(-1,1))
+        scaled_target_data = target_data.cpu().numpy()
+        scaled_output = scaler_output.inverse_transform(output.cpu().numpy().reshape(output.shape[0], -1))
         wandb.log({'Loss in test': loss_test.item(), 'Loss in train': loss.item(), 'MAE': np.mean(np.abs(scaled_output - scaled_target_data))})
         
         # Save the model if the loss is less than the initial loss
         if loss.item() < initial_loss:
             initial_loss = loss.item()
-            torch.save(model.model.state_dict(), 'new_exp_pred/nn/saved_model/{}_model_{}.pt'.format(_model, _index))
+            torch.save(model.model.state_dict(), 'exp_pred/nn/saved_model/{}_model_{}.pt'.format(_model, _index))
             print('Model saved')
             
 

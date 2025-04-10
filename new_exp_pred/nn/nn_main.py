@@ -11,7 +11,7 @@ import wandb
 import matplotlib.pyplot as plt
 
 import alg as al
-import exp_pred.pred_tool as pt
+import new_exp_pred.pred_tool as pt
 
 if __name__ == '__main__':
     # ---------- Load the data -----------------

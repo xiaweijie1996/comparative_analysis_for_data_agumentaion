@@ -26,21 +26,20 @@ if __name__ == "__main__":
     # ------------------- Evaluation of models-------------------
     for gen_model in gen_models:
         for _index in indexes:
-            try:
                 for pre_model in pre_models:
                     pre_path = f'exp_pred/pred_results/{pre_model}_{gen_model}_pred_results_{_index}.pickle'
                     
                     with open(pre_path, 'rb') as f:
                         pre_data = pickle.load(f)
-                        
+                    
+                    pre_data = pre_data.reshape(pre_data.shape[0], pre_data.shape[1], 1)
+                    
                     print(f'Model: {gen_model}, Index: {_index}')
                     print(f'Pre_Model: {pre_model}')    
                     print(f'MAE: {mae_loss(pre_data, real_data_test["output"])}')
                     print(f'RMSE: {rmse_loss(pre_data, real_data_test["output"])}')
                     
                     csv = csv._append({'gen_Model': gen_model, 'pre_Model':pre_model, 'Index': _index, 'MAE': mae_loss(pre_data, real_data_test['output']), 'RMSE': rmse_loss(pre_data, real_data_test['output'])}, ignore_index=True)
-            except:
-                pass
     
     # ----------Add the results of real data to the csv file----------
     try:
