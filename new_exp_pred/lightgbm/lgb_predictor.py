@@ -56,9 +56,8 @@ if __name__ == '__main__':
         validation_data = lgb.Dataset(test_input, label=test_output, reference=train_data)
 
         # fit and predict
-        param = {'subsample': 0.9, 'random_state': 22, 'num_leaves': 30,
-                    'n_estimators': 10, 'max_depth': 5, 'learning_rate': 0.046, 'verbose': -1,
-                    'colsample_bytree': 0.7, 'objective': 'regression', 'metric': "mse"}
+        param = {'subsample': 0.9, 'random_state': 22, 'num_leaves': 30,         'n_estimators': 200, 'max_depth': 13, 'learning_rate': 0.046, 'verbose': -1,         'colsample_bytree': 0.7, 'objective': 'regression', 'metric': "mse"}
+ 
         bst_lgb = lgb.train(param, train_data, num_round, valid_sets=[validation_data])
         pred_output = bst_lgb.predict(test_input)
 
@@ -83,14 +82,14 @@ if __name__ == '__main__':
         results_df.to_csv('new_exp_pred/metrics_summary_gbm.csv', index=False)
 
 
-    #     # reshape to (samples, timesteps, features) for plotting
-    #     pred_output_pickle = pred_output
-    #     test_output = test_output.reshape(-1, 48, 1)
-    #     pred_output = pred_output.reshape(-1, 48, 1)
-    #     print(pred_output_pickle.shape)
+        # reshape to (samples, timesteps, features) for plotting
+        with open(f'new_exp_pred/pred_results/LGB_{_m}_pred_results_{_index}.pickle', 'wb') as f:
+            pickle.dump(pred_output, f)
+            
+        with open(f'new_exp_pred/pred_results/target.pickle', 'wb') as f:
+            pickle.dump(test_output, f)
         
-    #     with open(f'exp_pred/pred_results/LGB_{_m}_pred_results_{_index}.pickle', 'wb') as f:
-    #         pickle.dump(pred_output_pickle, f)
+        
         
     #     # Plot 10 subfigures
     #     plt.figure(figsize=(15, 10))

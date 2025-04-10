@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 import pickle
+from sklearn.preprocessing import MinMaxScaler 
 
 # Define mse loss
-def mse_loss(pred, real):
+def mse_loss(pred, real): 
     return np.mean((pred - real) ** 2)
 
 def rmse_loss(pred, real):

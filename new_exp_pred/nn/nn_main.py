@@ -45,7 +45,12 @@ if __name__ == '__main__':
                                             batch_size=pre_config['NN']['batch_size'], 
                                             default_length=pre_config['NN']['default_length'],
                                             shuffle=True)
-        
+        # # Save the scaler
+        # with open(f'new_exp_pred/nn/scaler_input_{_m}_1.0.pickle', 'wb') as f:
+        #     pickle.dump(scaler_input, f)
+        # with open(f'new_exp_pred/nn/scaler_output_{_m}_1.0.pickle', 'wb') as f:
+        #     pickle.dump(scaler_output, f)
+        # print(f'Scaler saved for {_m} model')
         # Load test data
         test_path = f'dsets/test_set_wind.csv'
         real_data_test = pd.read_csv(test_path, index_col=0)
@@ -70,7 +75,7 @@ if __name__ == '__main__':
         predictor.model.to(device)
 
         # ---------- Train the model -----------------
-        optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'], weight_decay=pre_config['NN']['weight_decay'])
+        optimizer = torch.optim.Adam(predictor.model.parameters(), lr=pre_config['NN']['lr'])
         
         pt.train(predictor, train_loader, device, optimizer, 
                     epochs=pre_config['NN']['epochs'], 
@@ -93,9 +98,11 @@ if __name__ == '__main__':
         input_data = input_data.float()
         output = predictor.model(input_data)
         output = output.cpu().detach().numpy()
+        scaler_output = scaler_output.inverse_transform(output)
+        scaler_input = scaler_input.inverse_transform(input_data.cpu().detach().numpy())
         
         # Save the prediction exp_pred//DoppelGANger_model_0.05.pt
-        new_dataframe = np.hstack((input_data.cpu().detach().numpy(), output))
+        new_dataframe = np.hstack((scaler_input, scaler_output))
         new_dataframe = pd.DataFrame(new_dataframe)
         new_dataframe.to_csv(f'new_exp_pred/pred_results/pred_results_{_m}_{1.0}.csv', index=False)
                     

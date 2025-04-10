@@ -59,9 +59,11 @@ if __name__ == '__main__':
             validation_data = lgb.Dataset(test_input, label=test_output_flat, reference=train_data)
 
             # fit and predict
-            param = {'subsample': 0.9, 'random_state': 22, 'num_leaves': 30,
-                     'n_estimators': 200, 'max_depth': 13, 'learning_rate': 0.046, 'verbose': -1,
-                     'colsample_bytree': 0.7, 'objective': 'regression', 'metric': "mse"}
+            # param = {'subsample': 0.9, 'random_state': 22, 'num_leaves': 30,
+            #          'n_estimators': 200, 'max_depth': 13, 'learning_rate': 0.046, 'verbose': -1,
+            #          'colsample_bytree': 0.7, 'objective': 'regression', 'metric': "mse"}
+            param = {'subsample': 0.9, 'random_state': 22, 'num_leaves': 30,         'n_estimators': 200, 'max_depth': 13, 'learning_rate': 0.046, 'verbose': -1,         'colsample_bytree': 0.7, 'objective': 'regression', 'metric': "mse"}
+ 
             bst_lgb = lgb.train(param, train_data, num_round, valid_sets=[validation_data])
             pred_output = bst_lgb.predict(test_input)
 
