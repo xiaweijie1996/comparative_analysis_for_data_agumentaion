@@ -136,10 +136,10 @@ if __name__ == '__main__':
     # Save the prediction
     test_output = test_output.reshape(-1, 48, 1)
     pred_output = pred_output.reshape(-1, 48, 1)
-    print(pred_output_pickle.shape)
+    print(pred_output.shape)
 
     with open(f'exp_pred/pred_results/LGB_read_data_pred_results.pickle', 'wb') as f:
-        pickle.dump(pred_output_pickle, f)
+        pickle.dump(pred_output, f)
         
     # Plot 10 subfigures
     plt.figure(figsize=(15, 10))
